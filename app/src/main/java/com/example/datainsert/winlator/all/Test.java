@@ -21,4 +21,7 @@ public class Test {
         log(i);
     }
 
+    public long stringToLong(String str) {
+        return Long.parseUnsignedLong(str);
+    }
 }
