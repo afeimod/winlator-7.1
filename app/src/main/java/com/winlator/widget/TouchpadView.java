@@ -1,36 +1,28 @@
 package com.winlator.widget;
 
 import android.content.Context;
-import android.graphics.Matrix;
-import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.InputDevice;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.widget.FrameLayout;
 
 import com.winlator.core.AppUtils;
-import com.winlator.core.CursorLocker;
+import com.winlator.math.Mathf;
 import com.winlator.math.XForm;
-import com.winlator.renderer.GLRenderer;
-import com.winlator.renderer.Viewport;
+import com.winlator.renderer.ViewTransformation;
 import com.winlator.winhandler.MouseEventFlags;
 import com.winlator.winhandler.WinHandler;
 import com.winlator.xserver.Pointer;
 import com.winlator.xserver.XServer;
 
-import java.lang.reflect.Field;
-import java.util.Arrays;
-
 public class TouchpadView extends View {
     private static final byte MAX_FINGERS = 4;
     private static final short MAX_TWO_FINGERS_SCROLL_DISTANCE = 350;
-    private static final byte MAX_TAP_TRAVEL_DISTANCE = 10;
-    private static final String TAG = "TouchpadView";
-    public static boolean isRelativeOnStart=true;
-
+    public static final byte MAX_TAP_TRAVEL_DISTANCE = 10;
+    public static final short MAX_TAP_MILLISECONDS = 200;
+    public static final float CURSOR_ACCELERATION = 1.25f;
+    public static final byte CURSOR_ACCELERATION_THRESHOLD = 6;
     private final Finger[] fingers = new Finger[MAX_FINGERS];
     private byte numFingers = 0;
     private float sensitivity = 1.0f;
@@ -42,10 +34,7 @@ public class TouchpadView extends View {
     private boolean scrolling = false;
     private final XServer xServer;
     private Runnable fourFingersTapCallback;
-    /** 这个就相当于那个与aToXMatrix了吧？ */
     private final float[] xform = XForm.getInstance();
-    private boolean isFullScreen;
-
 
     public TouchpadView(Context context, XServer xServer) {
         super(context);
@@ -55,13 +44,6 @@ public class TouchpadView extends View {
         setFocusable(false);
         setFocusableInTouchMode(false);
         updateXform(AppUtils.getScreenWidth(), AppUtils.getScreenHeight(), xServer.screenInfo.width, xServer.screenInfo.height);
-
-        isFullScreen = xServer.getRenderer().isFullscreen();
-        //根据安卓屏幕分辨率和容器分辨率设置一个矩阵。照着exa那样就行了
-//        DisplayMetrics displayMetrics = new DisplayMetrics();
-//        context.getSystemService(WindowManager.class).getDefaultDisplay().getMetrics(displayMetrics);
-//        matrixA2X = refreshMatrix(xServer.screenInfo.width, xServer.screenInfo.height, displayMetrics.widthPixels, displayMetrics.heightPixels);
-
     }
 
     @Override
@@ -71,45 +53,30 @@ public class TouchpadView extends View {
     }
 
     private void updateXform(int outerWidth, int outerHeight, int innerWidth, int innerHeight) {
-        //它这个Viewport忽略了拉伸全屏的情况（全屏时scaleX和Y是不同的，不能用同一个）
-        float a_div_x_scaleW = 1f*outerWidth/innerWidth, a_div_x_scaleH = 1f*outerHeight/innerHeight;
-        float viewTranX=0, viewTranY=0;
+        ViewTransformation viewTransformation = new ViewTransformation();
+        viewTransformation.update(outerWidth, outerHeight, innerWidth, innerHeight);
 
-        if(!isFullScreen){
-            //等比全屏时，最终值选择scaleXY中较小的一个
-            a_div_x_scaleW = Math.min(a_div_x_scaleW,a_div_x_scaleH);
-            a_div_x_scaleH = a_div_x_scaleW;
-
-            //等比全屏时，比如左右黑边，则安卓单位的view需要往右移动一段距离
-            viewTranX = (outerWidth-innerWidth*a_div_x_scaleW)/2;
-            viewTranY = (outerHeight-innerHeight*a_div_x_scaleH)/2;
-        }
-
+        float invAspect = 1.0f / viewTransformation.aspect;
         if (!xServer.getRenderer().isFullscreen()) {
-            XForm.makeTranslation(xform, -viewTranX, -viewTranY);
-            XForm.scale(xform, 1f/a_div_x_scaleW, 1f/a_div_x_scaleH);
+            XForm.makeTranslation(xform, -viewTransformation.viewOffsetX, -viewTransformation.viewOffsetY);
+            XForm.scale(xform, invAspect, invAspect);
         }
-        else XForm.makeScale(xform, 1f/a_div_x_scaleW, 1f/a_div_x_scaleH);
+        else XForm.makeScale(xform, invAspect, invAspect);
     }
 
     private class Finger {
-        //x, startX, lastX大小现在都是x单位的.
-        // 从float改成int，这样可以保证移动位置的过程，不会出现误差：
-        // 如果两次float有变化，但整数位大小相同，那么本次不移动。
-        // 直到两次float整数位不同了，才移动一次。然后再直到下次整数位不同再移动
-        // 不管移动多远，误差只有最后那次移动忽略掉的小数部分。
         private int x;
         private int y;
-        private int startX;
-        private int startY;
+        private final int startX;
+        private final int startY;
         private int lastX;
         private int lastY;
         private final long touchTime;
 
         public Finger(float x, float y) {
             float[] transformedPoint = XForm.transformPoint(xform, x, y);
-            this.x = this.startX = this.lastX = (int) transformedPoint[0];
-            this.y = this.startY = this.lastY = (int) transformedPoint[1];
+            this.x = this.startX = this.lastX = (int)transformedPoint[0];
+            this.y = this.startY = this.lastY = (int)transformedPoint[1];
             touchTime = System.currentTimeMillis();
         }
 
@@ -117,37 +84,30 @@ public class TouchpadView extends View {
             lastX = this.x;
             lastY = this.y;
             float[] transformedPoint = XForm.transformPoint(xform, x, y);
-            this.x = (int) transformedPoint[0];
-            this.y = (int) transformedPoint[1];
+            this.x = (int)transformedPoint[0];
+            this.y = (int)transformedPoint[1];
         }
 
-        private int deltaX(float sensitivity) {
+        private int deltaX() {
             float dx = (x - lastX) * sensitivity;
-            return (int)(x <= lastX ? Math.floor(dx) : Math.ceil(dx));
+            if (Math.abs(dx) > CURSOR_ACCELERATION_THRESHOLD) dx *= CURSOR_ACCELERATION;
+            return Mathf.roundPoint(dx);
         }
 
-        private int deltaY(float sensitivity) {
+        private int deltaY() {
             float dy = (y - lastY) * sensitivity;
-            return (int)(y <= lastY ? Math.floor(dy) : Math.ceil(dy));
-        }
-
-        /**
-         * 用于二指右键，只松开了一根手指后，修改第一根手指的startX，以免第一根手指松开时触发左键点击事件
-         */
-        public void changeStartPos(float sx,float sy){
-            startX  = (int) sx;
-            startY = (int) sy;
+            if (Math.abs(dy) > CURSOR_ACCELERATION_THRESHOLD) dy *= CURSOR_ACCELERATION;
+            return Mathf.roundPoint(dy);
         }
 
         private boolean isTap() {
-            return (System.currentTimeMillis() - touchTime) < 300 && travelDistance() < MAX_TAP_TRAVEL_DISTANCE;
+            return (System.currentTimeMillis() - touchTime) < MAX_TAP_MILLISECONDS && travelDistance() < MAX_TAP_TRAVEL_DISTANCE;
         }
 
         private float travelDistance() {
             return (float)Math.hypot(x - startX, y - startY);
         }
     }
-
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
@@ -159,16 +119,9 @@ public class TouchpadView extends View {
         switch (actionMasked) {
             case MotionEvent.ACTION_DOWN:
             case MotionEvent.ACTION_POINTER_DOWN:
-                //时刻刷新检测拉伸全屏状态是否有变化吧
-                if(xServer.getRenderer().isFullscreen() != isFullScreen){
-                    isFullScreen = !isFullScreen;
-                    updateXform(getWidth(), getHeight(), xServer.screenInfo.width, xServer.screenInfo.height);
-                }
-
                 if (event.isFromSource(InputDevice.SOURCE_MOUSE)) return true;
                 scrollAccumY = 0;
                 scrolling = false;
-                handleFingerDown(event.getX(actionIndex), event.getY(actionIndex));
                 fingers[pointerId] = new Finger(event.getX(actionIndex), event.getY(actionIndex));
                 numFingers++;
                 break;
@@ -212,48 +165,14 @@ public class TouchpadView extends View {
         return true;
     }
 
-    /**
-     * 手指按下时（此时手指个数尚未增加）
-     * <p>
-     * 绝对位置点击的话，双击有问题，
-     * 因为按下时大概率会移动，所以第二次是先移动再点击，不会构成双击事件了。
-     * 所以按下时要判断一下，只有与当前pointer位置不超过最大点击距离的时候才会移动。
-     * 数值全部转为xserver单位后再计算（转到安卓单位的话，误差会变大）
-     * <p>
-     * 应该只有第一根手指才会移动到手指位置，因为第二根往后都是辅助操作，比如右键，拖拽，这些操作都应该以第一根手指的位置为准
-     */
-    private void handleFingerDown(float pressX, float pressY) {
-        if(isRelativeOnStart)
-            return;
-
-        if(numFingers>0)
-            return;
-
-        float[] pointerPos = new float[]{xServer.pointer.getX(), xServer.pointer.getY()};
-        float[] pressPos = XForm.transformPoint(xform, pressX, pressY); //mapPoints(matrixA2X, pressX, pressY);
-        //手指位置与当前指针位置距离超过了点击距离，并且是绝对点击，则将指针移动到手指位置
-        if (Math.hypot(pressPos[0] - pointerPos[0], pressPos[1] - pointerPos[1]) > MAX_TAP_TRAVEL_DISTANCE) {
-            Log.d(TAG, "handleFingerDown: 只有一根手指，此时应该移动到手指位置,坐标变换前="+pressX+", "+pressY+", 坐标变换后="+ Arrays.toString(pressPos));
-            xServer.injectPointerMove((int) pressPos[0], (int) pressPos[1]);
-        }
-
-    }
-
     private void handleFingerUp(Finger finger1) {
         switch (numFingers) {
             case 1:
                 if (finger1.isTap()) pressPointerButtonLeft(finger1);
                 break;
             case 2:
-                //两根手指松开一根的时候。这个时候要把光标同步一下
-
-                //如果当前松开的手指是点击事件，且另一根手指还没松开，则右键
                 Finger finger2 = findSecondFinger(finger1);
-                if (finger2 != null && finger1.isTap()){
-                    pressPointerButtonRight(finger1);
-                    //屏蔽第一根手指的左键事件
-                    finger2.changeStartPos(-100,-100);
-                }
+                if (finger2 != null && finger1.isTap()) pressPointerButtonRight(finger1);
                 break;
             case 4:
                 if (fourFingersTapCallback != null) {
@@ -274,9 +193,9 @@ public class TouchpadView extends View {
 
         Finger finger2 = numFingers == 2 ? findSecondFinger(finger1) : null;
         if (finger2 != null) {
-            float currDistance = (float)Math.hypot(finger1.x - finger2.x, finger1.y - finger2.y);
+            final float resolutionScale = 1000.0f / Math.min(xServer.screenInfo.width, xServer.screenInfo.height);
+            float currDistance = (float)Math.hypot(finger1.x - finger2.x, finger1.y - finger2.y) * resolutionScale;
 
-            //如果两个手指挨的较近，则滚动
             if (currDistance < MAX_TWO_FINGERS_SCROLL_DISTANCE) {
                 scrollAccumY += ((finger1.y + finger2.y) * 0.5f) - (finger1.lastY + finger2.lastY) * 0.5f;
 
@@ -292,14 +211,7 @@ public class TouchpadView extends View {
                 }
                 scrolling = true;
             }
-            //如果两个手指挨的较远，且当前没有按下左键，且另一根手指固定没懂，则按下鼠标左键，且跳过移动？
-            //只有走到这个函数，才能左键拖拽。此时设置的左键finger应该是正在移动的那根手指。另一根手指是固定不动的
-            //猜测出问题的原因：循环两个手指，刚读取到第一根手指（不动的那根）时，由于另一根也没动，所以第一根符合这个条件，被认为是应该移动的左键手指了
-            //还是刚按下手指时移动的问题。第二根手指按下时距离很远，所以移动到空白处，然后才按下的鼠标左键
-
-            //不对，ano应该是移动的手指，finger是固定的手指
-            else if (currDistance >= MAX_TWO_FINGERS_SCROLL_DISTANCE
-                    && !xServer.pointer.isButtonPressed(Pointer.Button.BUTTON_LEFT) &&
+            else if (currDistance >= MAX_TWO_FINGERS_SCROLL_DISTANCE && !xServer.pointer.isButtonPressed(Pointer.Button.BUTTON_LEFT) &&
                      finger2.travelDistance() < MAX_TAP_TRAVEL_DISTANCE) {
                 pressPointerButtonLeft(finger1);
                 skipPointerMove = true;
@@ -307,27 +219,14 @@ public class TouchpadView extends View {
         }
 
         if (!scrolling && numFingers <= 2 && !skipPointerMove) {
-            float distance = (float)Math.hypot(finger1.x - finger1.lastX, finger1.y - finger1.lastY);
-            float sensitivity = this.sensitivity * Math.min(distance, 1.0f);
-            int dx = finger1.deltaX(sensitivity);
-            int dy = finger1.deltaY(sensitivity);
+            int dx = finger1.deltaX();
+            int dy = finger1.deltaY();
 
-            if (xServer.cursorLocker.getState() == CursorLocker.State.LOCKED) {
+            if (xServer.isRelativeMouseMovement()) {
                 WinHandler winHandler = xServer.getWinHandler();
                 winHandler.mouseEvent(MouseEventFlags.MOVE, dx, dy, 0);
-//                Log.d(TAG, "handleFingerMove: dx,dy"+ Arrays.toString(dxy));
             }
             else xServer.injectPointerMoveDelta(dx, dy);
-//            else {
-//                if(isRelativeOnStart){
-//                    xServer.injectPointerMoveDelta(dx, dy);
-////                    Log.d(TAG, "handleFingerMove: dx,dy"+ Arrays.toString(dxy));
-//                }else{
-//                    //改为设置绝对位置
-//                    int[] nowPointer = finger1.nowPointer(sensitivity);
-//                    xServer.injectPointerMove(nowPointer[0], nowPointer[1]);
-//                }
-//            }
         }
     }
 
@@ -437,5 +336,21 @@ public class TouchpadView extends View {
             }
         }
         return handled;
+    }
+
+    public float[] computeDeltaPoint(float lastX, float lastY, float x, float y) {
+        final float[] result = {0, 0};
+
+        XForm.transformPoint(xform, lastX, lastY, result);
+        lastX = result[0];
+        lastY = result[1];
+
+        XForm.transformPoint(xform, x, y, result);
+        x = result[0];
+        y = result[1];
+
+        result[0] = x - lastX;
+        result[1] = y - lastY;
+        return result;
     }
 }
