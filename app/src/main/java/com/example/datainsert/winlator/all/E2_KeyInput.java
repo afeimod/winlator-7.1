@@ -92,30 +92,30 @@ class E2_KeyInput {
         return new int[]{keyboardKeysyms[keysymIdxStart],keyboardKeysyms[keysymIdxStart+1]};
     }
 
-    /**
-     * injectKeyPress最终会走到InputDeviceManager.onKeyPress，
-     * 如果xServer.keyboard所存的keycode对应的keysym不是传入的，且keysym不为0，则将其设置为此keycode的keysym，并发送MappingNotify
-     * 然后后续没有恢复原先keycode的操作。所以这里要手动模拟一下咯
-     * @param keycode 输入unicode按下事件时对应的keycode
-     * @param oriKeySyms keycode原先的两个keysym
-     */
-    private static void mappingKeySymBackToOrigin(XServer xServer, byte keycode, int[] oriKeySyms){
-        try (XLock lock = xServer.lock(XServer.Lockable.WINDOW_MANAGER, XServer.Lockable.INPUT_DEVICE)) {
-            Window focusedWindow = xServer.windowManager.getFocusedWindow();
-            if (focusedWindow == null) return;
-            Window pointWindow = xServer.windowManager.findPointWindow(xServer);
-
-            Window eventWindow;
-            if (focusedWindow.isAncestorOf(pointWindow)) {
-                eventWindow = pointWindow.getAncestorWithEventId(Event.KEY_PRESS, focusedWindow);
-            }else if (focusedWindow.hasEventListenerFor(Event.KEY_PRESS))
-                eventWindow = focusedWindow;
-            else return;
-
-            if (!eventWindow.attributes.isEnabled()) return;
-
-            xServer.keyboard.setKeysyms(keycode, oriKeySyms[0], oriKeySyms[1]);
-            eventWindow.sendEvent(new MappingNotify(MappingNotify.Request.KEYBOARD, keycode, 1));
-        }
-    }
+//    /**
+//     * injectKeyPress最终会走到InputDeviceManager.onKeyPress，
+//     * 如果xServer.keyboard所存的keycode对应的keysym不是传入的，且keysym不为0，则将其设置为此keycode的keysym，并发送MappingNotify
+//     * 然后后续没有恢复原先keycode的操作。所以这里要手动模拟一下咯
+//     * @param keycode 输入unicode按下事件时对应的keycode
+//     * @param oriKeySyms keycode原先的两个keysym
+//     */
+//    private static void mappingKeySymBackToOrigin(XServer xServer, byte keycode, int[] oriKeySyms){
+//        try (XLock lock = xServer.lock(XServer.Lockable.WINDOW_MANAGER, XServer.Lockable.INPUT_DEVICE)) {
+//            Window focusedWindow = xServer.windowManager.getFocusedWindow();
+//            if (focusedWindow == null) return;
+//            Window pointWindow = xServer.windowManager.findPointWindow(xServer);
+//
+//            Window eventWindow;
+//            if (focusedWindow.isAncestorOf(pointWindow)) {
+//                eventWindow = pointWindow.getAncestorWithEventId(Event.KEY_PRESS, focusedWindow);
+//            }else if (focusedWindow.hasEventListenerFor(Event.KEY_PRESS))
+//                eventWindow = focusedWindow;
+//            else return;
+//
+//            if (!eventWindow.attributes.isEnabled()) return;
+//
+//            xServer.keyboard.setKeysyms(keycode, oriKeySyms[0], oriKeySyms[1]);
+//            eventWindow.sendEvent(new MappingNotify(MappingNotify.Request.KEYBOARD, keycode, 1));
+//        }
+//    }
 }

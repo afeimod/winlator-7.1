@@ -263,6 +263,7 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
         if (environment != null) {
             xServerView.onResume();
             environment.onResume();
+        }
     }
     @Override
     protected void onStop() {

@@ -36,6 +36,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -92,14 +93,18 @@ public class E4_PRootShell {
      * 第三部分 + " &\n" &保证shell可以处理后续输入，注意 & 放在换行前
      */
     public static int exec(Context c, String command, String[] envp, File workingDir, Callback<Integer> terminationCallback) {
-        if(!isChecked(c)) {
+        int box64CmdIdx = command.indexOf(" box64 ");
+
+        //没开启proot终端选型，或命令中找不到box64，或安装wine时，使用原始代码启动进程。
+        if(!isChecked(c)
+                || box64CmdIdx == -1
+                || command.endsWith("box64 wine --version") || command.endsWith("box64 wine64 --version")) {
             Log.d(TAG, "exec: 启动proot。运行的命令为："+ command);
             return ProcessHelper.exec(command, envp, workingDir, terminationCallback);
         }
 
         pid = -1;
         try {
-            int box64CmdIdx = command.indexOf(" box64 ");
             //初始命令，启动proot，设置环境变量，并启动shell（dash）
             String initialCmd = command.substring(0, box64CmdIdx);
             List<String> cmdList = new ArrayList<>(Arrays.asList(ProcessHelper.splitCommand(initialCmd)));
@@ -133,6 +138,13 @@ public class E4_PRootShell {
                 box64CmdFinal.append(str.startsWith("\"") ? "" : "\"").append(str).append(str.endsWith("\"") ? "" : "\"").append(" ");
             sendInputToProcess(box64CmdFinal + " &\n");
 //            sendInputToProcess(command.substring(box64CmdIdx) + " &\n");
+
+            //ProcessHelper.createDebugThread 原本的log输出
+            ArrayList<Callback<String>> debugCallbacks = UtilsReflect.getFieldObject(ProcessHelper.class, null, "debugCallbacks");
+            if (!debugCallbacks.isEmpty()) {
+                Method method = UtilsReflect.getMethod(ProcessHelper.class, "createDebugThread", InputStream.class);
+                UtilsReflect.invokeMethod(method, "createDebugThread", runningProcess.getInputStream());
+            }
 
             //ProcessHelper.createWaitForThread。在进程结束时调用callback，并清空成员变量的值
             Executors.newSingleThreadExecutor().execute(() -> {

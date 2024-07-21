@@ -88,7 +88,7 @@
     <string name="unable_to_install_system_files">无法安装所需文件</string>
     <string name="keyboard">键盘</string>
     <string name="letter">盘符</string>
-    <string name="lock_cursor">锁定光标</string>
+    <string name="relative_mouse_movement">锁定光标</string>
     <string name="browse">浏览</string>
     <string name="magnifier">放大镜</string>
     <string name="max_device_memory">最大设备内存</string>
@@ -118,6 +118,7 @@
     <string name="process_name">进程名称</string>
     <string name="processes">进程</string>
     <string name="processor_affinity">处理器核心开关</string>
+    <string name="processor_affinity_32_bit_apps">处理器核心开关 (32位应用)</string>
     <string name="profile">配置</string>
     <string name="profile_exported_to">配置文件导出到</string>
     <string name="profile_name">配置名称</string>
@@ -143,7 +144,6 @@
     <string name="show_touchscreen_controls">显示触摸屏控件</string>
     <string name="stability">稳定</string>
     <string name="starting_up">启动中...</string>
-    <string name="stop_services_on_startup">启动时结束services.exe的进程</string>
     <string name="storage_info">存储信息</string>
     <string name="strict_shader_math">Strict Shader Math</string>
     <string name="system">系统</string>
@@ -183,7 +183,7 @@
     <string name="dxwrapper_help_content"><![CDATA[
         <i><b>WineD3D</b></i> 将 DirectX1-11 调用转换为 OpenGL 调用。<br /><br />
         <i><b>DXVK</b></i> 将 Direct3D 9-11 调用转换为 Vulkan 调用。<br /><br />
-        <i><b>D8VK</b></i> 将Direct3D 8 调用转换为 Vulkan 调用。<br /><br />
+        <i><b>VKD3D</b></i> 将 Direct3D 12 调用转换为 Vulkan 调用。<br /><br />
         <i><b>CNC DDraw</b></i> 是一种 DirectDraw 的实现，对老游戏的兼容性更好。
     ]]></string>
     <string name="box86_64_env_var_help__dynarec_safeflags"><![CDATA[
@@ -218,7 +218,8 @@
         启用/禁用 模拟强内存模型。<br /><br />
         <b>0</b> : 不作任何特殊处理。（默认） Don\'t try anything special<br />
         <b>1</b> : 当写入内存时（如某些MOV操作符），启用一些内存屏障，以模拟强内存模型，同时尽量减小性能影响。（当libmonobdwgc-2.0加载后为默认项）<br />
-        <b>2</b> : 当写入内存时（如某些MOV操作符），启用一些内存屏障，以模拟强内存模型。<br />
+        <b>2</b> : 在1的基础上。每次当使用MOV写入内存时，添加内存屏障。<br />
+        <b>2</b> : 在2的基础上。当使读取内存，或在某些SSE/SSE2操作符上，添加内存屏障。<br />
     ]]></string>
     <string name="box86_64_env_var_help__dynarec_forward"><![CDATA[
         定义 Dynarec 构建块时，允许向前移动的最大值。<br /><br />
@@ -235,9 +236,17 @@
         <b>0</b> : Dynarec 不会等待 FillBlock 准备好，而是使用 Interpreter。（可能对JIT或大量使用多线程的程序有提速）<br />
         <b>1</b> : Dynarec 会等待 FillBlock 准备好。（默认）<br />
     ]]></string>
+    <string name="enable_experimental_wow64_mode">启用新版Wow64模式</string>
+    <string name="logs">日志</string>
+    <string name="enable_wine_debug">打开 Wine 调试</string>
+    <string name="enable_box86_64_logs">打开 Box86/Box64 日志</string>
+    <string name="export">导出</string>
+    <string name="logs_exported_to">日志导出到</string>
+    <string name="general">普通</string>
+    <string name="msg_warning_install_wine">警告：安装新的wine，建议仅用于测试用途。</string>
+    <string name="startup_selection">选择启动项（services.exe）</string>
+    <string name="wine_debug_channel">Wine调试通道</string>
     <string name="add_to_screen">添加到安卓桌面</string>
     <string name="screen_shortcut_file_not_exist">快捷方式不存在！</string>
     <string name="screen_shortcut_add_finish">添加成功。请在安卓桌面长按应用图标查看。</string>
-    <string name="vibrate_when_press">按下时振动</string>
-
 </resources>

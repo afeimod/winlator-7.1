@@ -19,7 +19,7 @@ public class E6_ClickToMovePointer {
     public static void addInputControlsItems(XServerDisplayActivity a, ContentDialog dialog) {
 //        QH.refreshIsTest(a);
         try {
-            LinearLayout linearRoot = (LinearLayout) dialog.findViewById(R.id.CBLockCursor).getParent();
+            LinearLayout linearRoot = (LinearLayout) dialog.findViewById(R.id.CBRelativeMouseMovement).getParent();
 
             CheckBox checkBox2 = new CheckBox(a);
             checkBox2.setText(QH.string.绝对位置点击选项);
@@ -43,7 +43,7 @@ public class E6_ClickToMovePointer {
         if (updatePref)
             QH.getPreference(a).edit().putBoolean(PREF_KEY_IS_CUR_MOVE_REL, isRel).apply();
         try {
-            TouchpadView.isRelativeOnStart = isRel;
+//            TouchpadView.isRelativeOnStart = isRel;
         } catch (Throwable throwable) {
             throwable.printStackTrace();
         }

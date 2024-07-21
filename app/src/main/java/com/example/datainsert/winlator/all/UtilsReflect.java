@@ -1,9 +1,14 @@
 package com.example.datainsert.winlator.all;
 
+import com.winlator.core.Callback;
+import com.winlator.core.ProcessHelper;
 import com.winlator.renderer.GLRenderer;
 import com.winlator.widget.XServerView;
 
+import java.io.InputStream;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
 
 public class UtilsReflect {
 
@@ -19,4 +24,37 @@ public class UtilsReflect {
         }
         return pid;
     }
+
+    public static <T,C> T getFieldObject(Class<C> clz, C inst,  String fieldName) {
+        try {
+            Field field = clz.getDeclaredField(fieldName);
+            field.setAccessible(true);
+            Object obj =  field.get(inst);
+            field.setAccessible(false);
+            return (T) obj;
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static <T> T invokeMethod(Method method, Object obj, Object... args) {
+        try {
+            method.setAccessible(true);
+            Object ret = method.invoke(obj, args);
+            method.setAccessible(false);
+            return (T) ret;
+        } catch (Throwable throwable) {
+            throw new RuntimeException(throwable);
+        }
+    }
+
+    public static Method getMethod(Class<?> clz, String name, Class<?>... parameterTypes) {
+        try {
+            return clz.getDeclaredMethod(name, parameterTypes);
+        } catch (Throwable throwable) {
+            throw new RuntimeException(throwable);
+        }
+    }
+
+
 }
