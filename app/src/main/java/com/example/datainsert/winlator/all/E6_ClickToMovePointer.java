@@ -1,7 +1,7 @@
 package com.example.datainsert.winlator.all;
 
+import android.app.Activity;
 import android.content.Context;
-import android.util.Log;
 import android.widget.CheckBox;
 import android.widget.LinearLayout;
 
@@ -9,6 +9,8 @@ import com.winlator.R;
 import com.winlator.XServerDisplayActivity;
 import com.winlator.contentdialog.ContentDialog;
 import com.winlator.widget.TouchpadView;
+import com.winlator.widget.XServerView;
+import com.winlator.xserver.XServer;
 
 /**
  * 绝对位置点击
@@ -43,9 +45,23 @@ public class E6_ClickToMovePointer {
         if (updatePref)
             QH.getPreference(a).edit().putBoolean(PREF_KEY_IS_CUR_MOVE_REL, isRel).apply();
         try {
-//            TouchpadView.isRelativeOnStart = isRel;
+            TouchpadView.isRelativeOnStart = isRel;
         } catch (Throwable throwable) {
             throwable.printStackTrace();
         }
+    }
+
+    //点击切换拉伸全屏时 需要重新设置matrix
+    //但update里用isFullScreen判断，fullscreen要等待下一次渲染时才会刷新，因此不能直接加在点击监听里。
+    public static void updateXFormInTouchpadView(XServerView v) {
+        Activity a = QH.getActivity(v);
+
+        if(!(a instanceof XServerDisplayActivity aa))
+            return;
+
+        XServer xServer = UtilsReflect.getFieldObject(XServerDisplayActivity.class, aa, "xServer");
+        TouchpadView tpv = UtilsReflect.getFieldObject(XServerDisplayActivity.class, aa, "touchpadView");
+        UtilsReflect.invokeMethod(UtilsReflect.getMethod(TouchpadView.class, "updateXform", int.class, int.class, int.class, int.class),
+                tpv, tpv.getWidth(), tpv.getHeight(), xServer.screenInfo.width, xServer.screenInfo.height);
     }
 }

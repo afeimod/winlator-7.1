@@ -35,6 +35,8 @@ public class TouchpadView extends View {
     private final XServer xServer;
     private Runnable fourFingersTapCallback;
     private final float[] xform = XForm.getInstance();
+    private float[] lastDownXY = {0, 0}; //记录上一次手指位置，xserver单位，用于判断双击时第二次按下，不移动指针
+    public static boolean isRelativeOnStart = true; //是否开启绝对位置点击。
 
     public TouchpadView(Context context, XServer xServer) {
         super(context);
@@ -61,7 +63,7 @@ public class TouchpadView extends View {
             XForm.makeTranslation(xform, -viewTransformation.viewOffsetX, -viewTransformation.viewOffsetY);
             XForm.scale(xform, invAspect, invAspect);
         }
-        else XForm.makeScale(xform, invAspect, invAspect);
+        else XForm.makeScale(xform, viewTransformation.sceneScaleX * invAspect, viewTransformation.sceneScaleY * invAspect); //拉伸全屏时scaleX和Y是不同的 (宽的缩放应该是android宽/xserver宽，sceneScaleX再除以aspect正好是这个了)。然后点击切换拉伸全屏时也需要调用这个函数。
     }
 
     private class Finger {
@@ -124,6 +126,14 @@ public class TouchpadView extends View {
                 scrolling = false;
                 fingers[pointerId] = new Finger(event.getX(actionIndex), event.getY(actionIndex));
                 numFingers++;
+                //绝对位置点击。当只有一根手指，且距离当前指针坐标距离较大时，移动指针到手指位置
+                if(!isRelativeOnStart && numFingers == 1) {
+                    //根据finger.isTap()，MAX_TAP_TRAVEL_DISTANCE应该是x单位
+                    float[] xyInX = XForm.transformPoint(xform, event.getX(), event.getY());
+                    if (Math.hypot(xyInX[0] - lastDownXY[0], xyInX[1] - lastDownXY[1]) > MAX_TAP_TRAVEL_DISTANCE)
+                        xServer.injectPointerMove((int)xyInX[0], (int)xyInX[1]);
+                    lastDownXY = xyInX;
+                }
                 break;
             case MotionEvent.ACTION_MOVE:
                 if (event.isFromSource(InputDevice.SOURCE_MOUSE)) {

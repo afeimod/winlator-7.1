@@ -109,6 +109,7 @@ public class GLRenderer implements GLSurfaceView.Renderer, WindowManager.OnWindo
             fullscreen = !fullscreen;
             toggleFullscreen = false;
             viewportNeedsUpdate = true;
+            /*切换全屏后应更新xform*/com.example.datainsert.winlator.all.ExtraFeatures.ClickToMovePointer.updateXFormInTouchpadView(xServerView);
         }
 
         drawFrame();
