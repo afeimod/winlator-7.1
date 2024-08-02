@@ -1,10 +1,6 @@
 package com.example.datainsert.winlator.all;
 
-import android.app.PictureInPictureParams;
-import android.util.Rational;
-import android.view.Menu;
 import android.view.SubMenu;
-import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 
@@ -48,11 +44,11 @@ public class ExtraFeatures {
             Logcat.addItemToSettings(a, myLinearRoot);
             PRootShell.addItemToSettings(a, myLinearRoot);
 
-            if(QH.isTest) {
-                Button btn = new Button(a);
-                myLinearRoot.addView(btn, QH.lpLinear(-1, -2).top().to());
-                btn.setOnClickListener(v-> PRootShell.showTerminalDialog(a));
-            }
+//            if(QH.isTest) {
+//                Button btn = new Button(a);
+//                myLinearRoot.addView(btn, QH.lpLinear(-1, -2).top().to());
+//                btn.setOnClickListener(v-> PRootShell.showTerminalDialog(a));
+//            }
 
         }
     }

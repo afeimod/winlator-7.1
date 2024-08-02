@@ -28,6 +28,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.content.res.AppCompatResources;
 import androidx.core.widget.NestedScrollView;
 import androidx.preference.PreferenceManager;
@@ -263,7 +264,7 @@ public class QH {
     /**
      * 显示一个二次确认的对话框
      */
-    public static void showConfirmDialog(Context c, String s, DialogInterface.OnClickListener onClickListener) {
+    public static void showConfirmDialog(Context c, String s, @Nullable DialogInterface.OnClickListener onClickListener) {
         new AlertDialog.Builder(c)
                 .setMessage(s)
                 .setPositiveButton(android.R.string.ok, onClickListener)

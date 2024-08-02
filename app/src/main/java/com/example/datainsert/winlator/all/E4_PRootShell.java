@@ -6,6 +6,7 @@ import static android.view.View.VISIBLE;
 import static com.example.datainsert.winlator.all.QH.dp8;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.graphics.Point;
 import android.os.Handler;
 import android.os.Looper;
@@ -18,29 +19,29 @@ import android.view.WindowManager;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
-import android.widget.ScrollView;
 import android.widget.TextView;
 
 import androidx.annotation.UiThread;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.AppCompatImageButton;
 import androidx.core.widget.NestedScrollView;
 
 import com.example.datainsert.winlator.all.widget.SimpleTextWatcher;
 import com.winlator.R;
+import com.winlator.XServerDisplayActivity;
 import com.winlator.core.Callback;
 import com.winlator.core.ProcessHelper;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.Executors;
 
 /**
@@ -48,18 +49,22 @@ import java.util.concurrent.Executors;
  */
 public class E4_PRootShell {
     private static final String TAG = "PRootTerminal";
-    public static final int MAX_LINE = 1600; //允许缓存和显示的最大行数
-    public static final int REDUCED_FRAGMENT = 800; //达到最大缓存时，删掉的行数
+    public static final int MAX_LINE = 6000; //允许缓存和显示的最大行数
+    public static final int REDUCED_FRAGMENT = 3000; //达到最大缓存时，删掉的行数
+    public static final int MIN_RECEIVE_INTERVAL = 17; //刷新频率，最快17毫秒刷新一次。
     static Handler handler = new Handler(Looper.getMainLooper());
     private static final String PREF_KEY_PROOT_TERMINAL_ENABLE = "proot_terminal_enable";
     private static final String PREF_KEY_PROOT_TERMINAL_TEXT_SIZE = "proot_terminal_text_size";
     private static final String PREF_KEY_PROOT_TERMINAL_AUTO_SCROLL = "proot_terminal_auto_scroll";
-    //获取输出流的线程。进程结束时应置为null
-    private static OutputThread outputThread;
+    //显示输出流的回调。进程结束时应置为null
+    private static DisplayCallback displayCallback;
+    //显示的dialog。在第一次点左侧菜单时初始化（开启终端选项时），在process结束时置为null。
+    // 由于不开启终端选项时无法监听进程结束 不能置null，所以不开启选项时不能用这个。
+    private static AlertDialog dialog;
+    private static TextView tv;
     private static Process runningProcess;
     private static int pid = -1;
     private static boolean isAutoScroll = true; //是否自动滚动到底部
-
 
     /**
      * 主界面 - 设置中 添加选项。
@@ -95,10 +100,9 @@ public class E4_PRootShell {
     public static int exec(Context c, String command, String[] envp, File workingDir, Callback<Integer> terminationCallback) {
         int box64CmdIdx = command.indexOf(" box64 ");
 
-        //没开启proot终端选型，或命令中找不到box64，或安装wine时，使用原始代码启动进程。
-        if(!isChecked(c)
-                || box64CmdIdx == -1
-                || command.endsWith("box64 wine --version") || command.endsWith("box64 wine64 --version")) {
+        //没开启proot终端选项，或context非xserver activity，或命令中找不到box64，或安装wine时，使用原始代码启动进程。
+        if(!isChecked(c) || !(c instanceof XServerDisplayActivity)
+                || box64CmdIdx == -1 || command.endsWith("box64 wine --version") || command.endsWith("box64 wine64 --version")) {
             Log.d(TAG, "exec: 启动proot。运行的命令为："+ command);
             return ProcessHelper.exec(command, envp, workingDir, terminationCallback);
         }
@@ -127,10 +131,6 @@ public class E4_PRootShell {
             pid = UtilsReflect.getPid(runningProcess);
             Log.d(TAG, "exec: 获取到的pid="+pid);
 
-            //获取输出流
-            outputThread = new OutputThread(runningProcess.getInputStream());
-            outputThread.start();
-
             //启动dash成功后，再输入命令启动box64。
             //注意快捷方式启动时，使用winhandler.exe启动exe，其路径中的空格会替换成\+空格，所以还得先用winlator的函数正确分割参数，然后每个参数都加上引号
             StringBuilder box64CmdFinal = new StringBuilder();
@@ -139,12 +139,22 @@ public class E4_PRootShell {
             sendInputToProcess(box64CmdFinal + " &\n");
 //            sendInputToProcess(command.substring(box64CmdIdx) + " &\n");
 
-            //ProcessHelper.createDebugThread 原本的log输出
-            ArrayList<Callback<String>> debugCallbacks = UtilsReflect.getFieldObject(ProcessHelper.class, null, "debugCallbacks");
-            if (!debugCallbacks.isEmpty()) {
-                Method method = UtilsReflect.getMethod(ProcessHelper.class, "createDebugThread", InputStream.class);
-                UtilsReflect.invokeMethod(method, "createDebugThread", runningProcess.getInputStream());
+            //创建dialog。因为当前并非ui线程，所以要等待一下
+            Thread currThread = Thread.currentThread();
+            handler.post(() -> {
+                createDialog((XServerDisplayActivity) c);
+                currThread.interrupt();
+            });
+            try {
+                Thread.sleep(3000);
+            } catch (InterruptedException e) {
+                Log.d(TAG, "exec: dialog已在主线程创建完毕。接着运行exec函数中的部分。");
             }
+
+            //将终端输出 加入callback数组，并调用 ProcessHelper.createDebugThread 处理输出流
+            ProcessHelper.addDebugCallback(displayCallback = new DisplayCallback());
+            Method method = UtilsReflect.getMethod(ProcessHelper.class, "createDebugThread", InputStream.class);
+            UtilsReflect.invokeMethod(method, null, runningProcess.getInputStream());
 
             //ProcessHelper.createWaitForThread。在进程结束时调用callback，并清空成员变量的值
             Executors.newSingleThreadExecutor().execute(() -> {
@@ -153,7 +163,9 @@ public class E4_PRootShell {
                     Log.d(TAG, "exec: proot进程停止运行。");
                     runningProcess = null;
                     pid = -1;
-                    outputThread = null; //停止时将变量置为null
+                    dialog = null;
+                    tv = null;
+                    displayCallback = null; //停止时将变量置为null
                     if(terminationCallback!=null) terminationCallback.call(status);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
@@ -177,22 +189,24 @@ public class E4_PRootShell {
             Log.d(TAG, "inputToProcess: 向进程中输入命令："+finalCmd);
             runningProcess.getOutputStream().write(finalCmd.getBytes());
             runningProcess.getOutputStream().flush();
-            if(outputThread != null && outputThread.isAlive()) outputThread.onNewLine(finalCmd);
+            if(displayCallback != null)
+                displayCallback.call(finalCmd);
         } catch (IOException e) {
             e.printStackTrace();
         }
-        ;
     }
 
     /**
-     * 容器启动后，左侧栏点击选项后显示视图
+     * 在exec函数 创建进程时，顺带创建dialog和callback
+     * <br/> 将dialog和tv存到成员变量上。
      */
-    public static boolean showTerminalDialog(AppCompatActivity a) {
-        ViewGroup root = (ViewGroup) a.getLayoutInflater().inflate(R.layout.zzz_proot_teriminal_dialog, null, false);
-
+    @UiThread
+    public static void createDialog(AppCompatActivity a) {
         Point point = new Point();
         a.getWindowManager().getDefaultDisplay().getSize(point);
         int viewWidth = point.x/2 < QH.px(a,400) ? (int) (point.x * 0.9f) : point.x/2;
+
+        ViewGroup root = (ViewGroup) a.getLayoutInflater().inflate(R.layout.zzz_proot_teriminal_dialog, null, false);
         root.setLayoutParams(new ViewGroup.LayoutParams(viewWidth, -1));
 
         //输入命令
@@ -207,23 +221,16 @@ public class E4_PRootShell {
             }
         });
 
-        DisplayCallback displayCallback;
         //文字输出
-        TextView tvOutput = root.findViewById(R.id.terminal_text);
-        tvOutput.setTextSize(TypedValue.COMPLEX_UNIT_PX, QH.getPreference(a).getFloat(PREF_KEY_PROOT_TERMINAL_TEXT_SIZE, dp8*7/4f));
-        if(outputThread ==null || !outputThread.isAlive()) {
-            tvOutput.setText(QH.string.proot终端_请先开启选项);
-            displayCallback = null;
-//            runTestThread((displayCallback = new DisplayCallback(tvOutput)), tvOutput);
-        } else {
-            displayCallback = new DisplayCallback(tvOutput);
-            outputThread.setDisplayCallback(displayCallback);
-        }
+        tv = root.findViewById(R.id.terminal_text);
+        tv.setTextSize(TypedValue.COMPLEX_UNIT_PX, QH.getPreference(a).getFloat(PREF_KEY_PROOT_TERMINAL_TEXT_SIZE, dp8*7/4f));
+        //设置BufferType为editable，后续用getEditableText获取和编辑
+        tv.setText("", TextView.BufferType.EDITABLE);
 
         //菜单显隐
         View groupMenu = root.findViewById(R.id.group_menu_items);
         groupMenu.setVisibility(GONE);
-        root.findViewById(R.id.btn_menu).setOnClickListener( v2-> groupMenu.setVisibility(
+        root.findViewById(R.id.btn_menu).setOnClickListener(v2 -> groupMenu.setVisibility(
                 groupMenu.getVisibility() == VISIBLE ? GONE : VISIBLE));
 
         //ctrl+c
@@ -233,45 +240,69 @@ public class E4_PRootShell {
 
         //自动滚动到底部
         isAutoScroll = QH.getPreference(a).getBoolean(PREF_KEY_PROOT_TERMINAL_AUTO_SCROLL, true);
-        root.findViewById(R.id.btn_auto_scroll).setOnClickListener(v -> {
-//            if(displayCallback == null) return;
-//            boolean newValue = !displayCallback.isAutoScroll();
-//            displayCallback.setAutoScroll(newValue);
+        AppCompatImageButton btnAutoScroll = root.findViewById(R.id.btn_auto_scroll);
+        btnAutoScroll.setOnClickListener(v -> {
             isAutoScroll = !isAutoScroll;
+            btnAutoScroll.setColorFilter(isAutoScroll ? Color.BLACK : Color.GRAY);
             QH.getPreference(v.getContext()).edit().putBoolean(PREF_KEY_PROOT_TERMINAL_AUTO_SCROLL, isAutoScroll).apply();
+            if(isAutoScroll)
+                displayCallback.scrollToEnd();
         });
-        root.findViewById(R.id.btn_auto_scroll).setTooltipText(QH.string.proot终端_自动滚动到底部);
+        btnAutoScroll.setTooltipText(QH.string.proot终端_自动滚动到底部);
+        btnAutoScroll.setColorFilter(isAutoScroll ? Color.BLACK : Color.GRAY);
 
         //帮助
         root.findViewById(R.id.btn_help).setOnClickListener(v -> QH
                 .showConfirmDialog(v.getContext(), QH.string.proot终端说明, null));
 
         //文字放大缩小，一次变2dp
-        root.findViewById(R.id.btn_text_size_up).setOnClickListener(v -> changeTextSize(tvOutput, true));
-        root.findViewById(R.id.btn_text_size_down).setOnClickListener(v -> changeTextSize(tvOutput, false));
+        root.findViewById(R.id.btn_text_size_up).setOnClickListener(v -> changeTextSize(tv, true));
+        root.findViewById(R.id.btn_text_size_down).setOnClickListener(v -> changeTextSize(tv, false));
 
-        AlertDialog dialog = new AlertDialog.Builder(a)
+        assert dialog == null;
+        dialog = new AlertDialog.Builder(a)
                 .setView(root)
                 .setCancelable(false)
-                .setOnDismissListener(dialog1 -> {
-                    if(outputThread != null)
-                        outputThread.clearDisplayCallback();
-                })
+                .setOnDismissListener(dialog1 -> {})
                 .create();
 
         //关闭
-        root.findViewById(R.id.btn_close).setOnClickListener(v-> dialog.dismiss());
+        root.findViewById(R.id.btn_close).setOnClickListener(v -> {
+            groupMenu.setVisibility(GONE);
+            //遇到了dismiss无效的问题 https://blog.csdn.net/qiujuer/article/details/121238845 。
+            // 原因是在非ui线程创建了dialog，导致dialog.mHandler.mLooper != 主线程Looper
+            dialog.dismiss();
+        });
+    }
+
+    /**
+     * 容器启动后，左侧栏点击选项后显示视图
+     */
+    public static boolean showTerminalDialog (AppCompatActivity a) {
+        if(dialog == null) {
+            QH.showConfirmDialog(a, QH.string.proot终端_请先开启选项, null);
+            return true;
+        }
 
         dialog.show();
         // 在show之前修改window宽高不生效。在show之后修改，外部轮廓生效，但内部视图还不行
         // 原因：即使传入的自定义视图高度设成match，但其父视图默认是wrap。只好给自定义视图里加一个撑满高度的空白view了
-        WindowManager.LayoutParams attr = dialog.getWindow().getAttributes();
-        attr.width = viewWidth;
+        WindowManager.LayoutParams attr = Objects.requireNonNull(dialog.getWindow()).getAttributes();
+        attr.width = getDialogWidth(a);
         attr.height = -1;
         attr.gravity = Gravity.START;
         dialog.getWindow().setAttributes(attr);
 
+        if(isAutoScroll)
+            displayCallback.scrollToEnd();
+
         return true;
+    }
+
+    private static int getDialogWidth(AppCompatActivity a) {
+        Point point = new Point();
+        a.getWindowManager().getDefaultDisplay().getSize(point);
+        return point.x/2 < QH.px(a,400) ? (int) (point.x * 0.9f) : point.x/2;
     }
 
     private static void changeTextSize(TextView tv, boolean up) {
@@ -297,162 +328,150 @@ public class E4_PRootShell {
         }).start();
     }
 
-    private static class OutputThread extends Thread{
+    /**
+     * callback，加入到ProcessHelper的回调数组中。
+     * <br/>新建实例时，应确保dialog和tv成员变量存在
+     * //TODO 要不要考虑换成recyclerView？
+     */
+    private static class DisplayCallback implements Callback<String> {
         //TODO 好像跨线程写入的话不安全。要不试试 CopyOnWriteArrayList
-        private List<String> allLines = new ArrayList<>(); //存储历史文本行
-        private DisplayCallback displayCallback = null; //用于将文本显示到屏幕上的回调。其内容应该在主线程上执行
-        private InputStream inputStream; //输出内容流
-        public OutputThread (InputStream inputStream) {
-            this.inputStream = inputStream;
+        private List<String> allLines = new ArrayList<>(); //存储历史文本行，只会在ui线程被访问。
+        private final StringBuilder caches = new StringBuilder(); //输出频率过快时的缓存，尚未加入allLines，可能在多线程被访问所以要加锁。
+        private long lastReceiveTime = System.currentTimeMillis();
+        private Thread delayRefreshThread = new Thread();
+        @Override
+        public void call(String line) {
+            synchronized (caches) {
+                long currTime = System.currentTimeMillis();
+
+                //如果输出频率过快，则限制一下。
+                if (currTime - lastReceiveTime < MIN_RECEIVE_INTERVAL) {
+                    //将本行输出存入cache而非allLines。并跳过本次tv更新。
+                    boolean isInCaching = caches.length() > 0;
+                    caches.append(isInCaching ? "\n" : "").append(line);
+
+                    //新建线程，倒计时min_interval之后，再次检查。如果已经有线程正在倒计时，则取消，重新倒计时。
+                    if(isInCaching)
+                        delayRefreshThread.interrupt();
+                    delayRefreshThread = new DelayRefreshThread(() -> {
+                        //倒计时结束时，如果cache仍未被处理，则把cache内容作为line，调用call函数，同时清空cache
+                        synchronized (caches) {
+                            if(caches.length() == 0)
+                                return;
+                            String cacheLines = caches.toString();
+                            caches.delete(0, caches.length());
+                            call(cacheLines); //synchronized是可重入锁，可以对同一个对象多次加锁
+                        }
+
+                    });
+                    delayRefreshThread.start();
+                }
+                //如果输出频率合适，则扔到ui线程处理。
+                //可能有cache尚未处理（说明之前频率过快，但是开启的延迟检查线程尚未倒计时结束），
+                // 此时应合并cache和当前行，然后清空cache，取消延迟检查
+                else {
+                    lastReceiveTime = currTime;
+                    boolean hasCached = caches.length() == 0;
+
+                    String tmpLine = hasCached ? caches.append('\n').append(line).toString() : line;;
+                    if (tmpLine.endsWith("\n")) tmpLine = tmpLine.substring(0, tmpLine.length()-1);
+                    if (tmpLine.startsWith("\n")) tmpLine = tmpLine.substring(1);
+
+                    caches.delete(0, caches.length());
+                    if(delayRefreshThread.isAlive())
+                        delayRefreshThread.interrupt();
+
+                    final String finalLine = tmpLine;
+                    handler.post(() -> {
+                        //对allLines的访问，应仅在在ui线程。
+                        if (allLines.size() > MAX_LINE) {
+                            allLines.subList(0, REDUCED_FRAGMENT).clear(); //这样可以移除指定范围的元素
+                            setAllLinesToTv();
+                        }
+                        allLines.add(finalLine);
+
+                        //TODO 参考一下termux怎么实现terminalView，缓存行，和文本显示（每行一个textview？）
+                        // 还有ctrl+c 实现？多进程？（留一个rootProcess，用户可以操作的都是从此root分支出来的，保证用户关闭了进程还可以再新建）
+
+                        tv.getEditableText().append(finalLine).append('\n'); //这个要在ui线程修改
+
+                        if(isAutoScroll && dialog.isShowing())
+                            scrollToEnd();
+                    });
+                }
+            }
         }
+
+
         /**
-         * 用于设置显示到屏幕上的callback。
-         * 在显示终端视图时，设置此callback，立刻显示全部历史文本行。之后的输出流内容更新时调用回调，因此终端视图会同步更新
+         * 用于将一行新的文本显示在textview上。若短时间调用多次，可能会延迟几百毫秒后显示。因为涉及UI操作，必须在主线程中调用。
+         * @param finalLine 新增加的一行，末尾不能带换行。
          */
-        public void setDisplayCallback(DisplayCallback callback) {
-            displayCallback = callback;
-            handler.post(() -> {
-                for(String line : allLines)
-                    displayCallback.call(line);
+        @UiThread
+        private void callOnUIThread(String finalLine) {
+            if (finalLine.endsWith("\n")) finalLine = finalLine.substring(0, finalLine.length()-1);
+            if (finalLine.startsWith("\n")) finalLine = finalLine.substring(1);
+
+            if (allLines.size() > MAX_LINE) {
+                allLines.subList(0, REDUCED_FRAGMENT).clear(); //这样可以移除指定范围的元素
+                setAllLinesToTv();
+            }
+            allLines.add(finalLine);
+
+            //TODO 参考一下termux怎么实现terminalView，缓存行，和文本显示（每行一个textview？）
+            // 还有ctrl+c 实现？多进程？（留一个rootProcess，用户可以操作的都是从此root分支出来的，保证用户关闭了进程还可以再新建）
+
+
+            tv.getEditableText().append(finalLine).append('\n'); //这个要在ui线程修改
+
+            if(!dialog.isShowing())
+                return;
+
+            if(isAutoScroll)
+                scrollToEnd();
+        }
+
+        public void scrollToEnd() {
+            //原来是fullScroll调用后会设置textview为焦点导致的，即使不再手动调用也会自动滚动。同时也会导致edittext输入到一半被清空焦点。。
+            tv.post(() -> {
+                ((NestedScrollView) tv.getParent().getParent()).fullScroll(FOCUS_DOWN);
+                tv.clearFocus();
             });
         }
 
         /**
-         * 视图关闭时，应该清除回调
+         * 清空tv，并将列表中全部行都添加到tv上. 用途
+         * 1（不用了）. 尚未初始化dialog时，已经记录了一些输出。dialog初始化之后，应该将这些缓存的行添加到tv上。
+         * 2. 行数超过最大限制时，删去前半段输出，此时应该清空tv并将剩下的输出显示到tv上。
          */
-        public void clearDisplayCallback() {
-            if(displayCallback != null)
-                displayCallback.tv = null;
-            displayCallback = null;
-        }
-        @Override
-        public void run() {
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
-                String line;
-
-                //TODO 写入文件。先不管了？
-//                    File winlatorDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), "Winlator");
-//                    winlatorDir.mkdirs();
-//                    final File debugFile = new File(winlatorDir, isError ? "debug-err.txt" : "debug-out.txt");
-//                    if (debugFile.isFile()) debugFile.delete();
-//                    try (BufferedWriter writer = new BufferedWriter(new FileWriter(debugFile))) {
-//                        while ((line = reader.readLine()) != null) writer.write(line+"\n");
-//                    }
-
-                while ((line = reader.readLine()) != null) {
-                    onNewLine(line);
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            } finally {
-                inputStream = null;
-                clearDisplayCallback();
-                Log.d(TAG, "run: OutputThread结束");
-            }
-        }
-
-        synchronized public void onNewLine(String line) {
-            String finalLine = line.endsWith("\n") ? line.substring(0, line.length()-1) : line;
-            allLines.add(finalLine);
-            if(allLines.size() > MAX_LINE)
-                allLines = allLines.subList(REDUCED_FRAGMENT, allLines.size());
-            //TODO 参考一下termux怎么实现terminalView，缓存行，和文本显示（每行一个textview？）
-            // 还有ctrl+c 实现？多进程？（留一个rootProcess，用户可以操作的都是从此root分支出来的，保证用户关闭了进程还可以再新建）
-
-            if (displayCallback != null)
-                handler.post(() -> displayCallback.call(line));
-            else
-                Log.d("PRootShell", line);
+        @UiThread
+        public void setAllLinesToTv() {
+            Log.d(TAG, "setAllLinesToTv: 清空editableText，然后添加");
+            tv.getEditableText().clear();
+            StringBuilder sb = new StringBuilder();
+            for (String line : allLines)
+                sb.append(line).append('\n');
+            tv.getEditableText().append(sb.toString());
         }
     }
 
-    private static class DisplayCallback implements Callback<String> {
-        TextView tv;
-        int lineCount = 0;
-        int breakPointCount = 0;
-        List<Integer> trimBreakPoint = new ArrayList<>();//要删除缓存行时，移除这里的第一个元素，将此idx之前的字符删掉
-        public DisplayCallback(TextView tv) {
-            this.tv = tv;
-
-            //设置BufferType为editable，后续用getEditableText获取和编辑
-            this.tv.setText("", TextView.BufferType.EDITABLE);
-
+    private static class DelayRefreshThread extends Thread {
+        Runnable r;
+        public DelayRefreshThread (Runnable r) {
+            this.r = r;
         }
-
-        /**
-         * 用于将一行新的文本显示在textview上。若短时间调用多次，可能会延迟几百毫秒后显示。因为涉及UI操作，必须在主线程中调用。
-         * @param line 新增加的一行，末尾不能带换行。
-         */
-        @UiThread
         @Override
-        public void call(String line) {
-//            if(!isAutoScroll)
-//                isAutoScroll = tv.getHeight() <= scrollView.getScrollY() + scrollView.getHeight();
-            tv.getEditableText().append(line).append('\n');
-            if(isAutoScroll) {
-                //原来是fullScroll调用后会设置textview为焦点导致的，即使不再手动调用也会自动滚动。同时也会导致edittext输入到一半被清空焦点。。
-                tv.post(() -> {
-                    ((NestedScrollView) tv.getParent().getParent()).fullScroll(FOCUS_DOWN);
-                    tv.clearFocus();
-                });
-            }
-
-//            builder.append(line).append("\n");
-            //如果快速输入两行，则第一行输入后，尚未滚动到最底部时，第二行输入，此时不会再滚动到最底部。所以只有当确实滚动后再置为false
-            //还是不行啊，加个时间限制吧，限制textview.setText()频率
-//            updateTextView(false);
-
-            lineCount ++;
-            breakPointCount ++;
-            if(breakPointCount > REDUCED_FRAGMENT) {
-                breakPointCount = 0;
-                trimBreakPoint.add(tv.getEditableText().length());
-            }
-
-            if(lineCount > MAX_LINE) {
-                lineCount = MAX_LINE - REDUCED_FRAGMENT;
-                int del = trimBreakPoint.remove(0);
-                tv.getEditableText().delete(0, del);
-                for(int i=0; i<trimBreakPoint.size(); i++) {
-                    int old = trimBreakPoint.remove(i);
-                    trimBreakPoint.add(i, old - del);
-                }
+        public void run() {
+            try {
+                Thread.sleep(MIN_RECEIVE_INTERVAL);
+                r.run();
+            } catch (InterruptedException e) {
+                //如果被打断，说明取消该延迟检查了。
+            } finally {
+                // 资源回收
+                r = null;
             }
         }
-
-//        /**
-//         * 调用此函数更新textview的文字。
-//         * <br/> 如果更新文字前视图处于最底部，则添加一行后再次滚动到最底部
-//         * <br/> 如果距离上次刷新文字时间小于200秒，跳过此次刷新，延迟一段时间后重试
-//         * @param isFromDelayed 该调用是否为当前频率过快而延迟调用。如果是，检查当前是否还需要刷新
-//         */
-//        public void updateTextView (boolean isFromDelayed) {
-//            //延迟调用，如果已经被之前处理过了，则不管了
-//            if(isFromDelayed && !isTextUnhandled)
-//                return;
-//
-//            long currTime = System.currentTimeMillis();
-//            NestedScrollView scrollView = (NestedScrollView) tv.getParent().getParent();
-//
-//            if(!isAutoScroll)
-//                isAutoScroll = tv.getHeight() <= scrollView.getScrollY() + scrollView.getHeight();
-//
-//            if(currTime - lastUpdateTime > 200) {
-//                isTextUnhandled = false;
-//                lastUpdateTime = currTime;
-//                //要重新设置到textview上吗 需要
-////                tv.setText("Dd", TextView.BufferType.EDITABLE);
-//                //如果当前已经在最底部，添加新一行之后应该继续滚动到最底部。注意要用post
-//                if(isAutoScroll)
-//                    scrollView.post(() -> {
-//                        scrollView.fullScroll(FOCUS_DOWN);
-//                        isAutoScroll = false;
-//                    });
-//            } else {
-////                isTextUnhandled = true;
-////                tv.postDelayed(() -> updateTextView(true), 200);
-//            }
-//        }
     }
 
 }
