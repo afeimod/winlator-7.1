@@ -150,7 +150,7 @@
     <string name="target_path">目标路径</string>
     <string name="task_manager">任务管理器</string>
     <string name="theme">主题</string>
-    <string name="toggle_fullscreen">切换全屏</string>
+    <string name="toggle_fullscreen">切换拉伸全屏</string>
     <string name="toggle_switch">长按模式</string>
     <string name="total">全部</string>
     <string name="touchpad_help">触摸屏帮助</string>

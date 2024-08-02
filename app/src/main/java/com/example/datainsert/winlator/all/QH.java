@@ -11,6 +11,7 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
+import android.content.ContextWrapper;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
@@ -314,6 +315,18 @@ public class QH {
             ex.printStackTrace();
         }
         AppUtils.restartApplication(c);
+    }
+
+    /**将一个视图的context转为activity*/
+    public static Activity getActivity(View v) {
+        Context context = v.getContext();
+        while (context instanceof ContextWrapper) {
+            if (context instanceof Activity) {
+                return (Activity) context;
+            }
+            context = ((ContextWrapper) context).getBaseContext();
+        }
+        return null;
     }
 
 
