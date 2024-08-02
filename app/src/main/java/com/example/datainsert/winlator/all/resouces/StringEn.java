@@ -11,7 +11,11 @@ public class StringEn {
         QH.string.游戏样式光标选项说明 = "Winlator inherits the xserver bug from exagear, which can't display mouse cursor image sometimes. If cursor drawable is not available, an alternate png image is used." +
                 "\n\nIf this option is checked, xserver will first try to get and display the cursor drawable with game's style. However colors will be only black and white, and the dynamic cursor can only be displayed as a static image.";
         QH.string.绝对位置点击选项 = "Cursor moves to where finger presses";
-        QH.string.绝对位置点击选项说明 = "If checked, cursor will go to where you finger is when pressing.\n1 finger click = mouse left click.\n1st finger pressing, 2nd finger press and moving = mouse left button drag and drop.\n1st finger pressing, 2nd finger quick tap = mouse right button click.";
+        QH.string.绝对位置点击选项说明 = """
+            If this option is checked, when the first finger is pressing, the cursor immediately moves to the finger's position. The rest of the operation logic remains unchanged.
+            \nThis option may conflict with the "Lock Cursor"("Relative Mouse Movement" in 7.1) option, so it is recommended not to turn on both at the same time.
+            \nTip: After pressing the first finger, press the second finger at a farther position and move one of the fingers to drag and drop.
+            """;
         QH.string.pulse按钮立即运行 = "Run now";
         QH.string.pulse按钮立即停止="Stop now";
         QH.string.pulse按钮注意事项="Note";
@@ -49,6 +53,9 @@ public class StringEn {
                     
                     - At the dialog bottom-right, you can turn on the "Auto Scroll To Bottom" option. Note that when this option is turned on, \
                     users may be interrupted by a new output line while typing commands, please consider turning it off if it happens.
+                    
+                    - This is created at 6.1. Started from 7.1, official version supports "Logs" (can be started from left drawer menu). \
+                    You can go to "Settings" to adjust the output content of wine and box.
                     """;
         QH.string.proot终端_启动失败_请关闭选项重试 = "Launch failed. Please disable the PRoot shell option in settings and retry.";
         QH.string.proot终端_请先开启选项 = "Unable to get output. Please go back to settings and enable the proot shell option first.";
