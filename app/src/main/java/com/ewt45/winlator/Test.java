@@ -1,11 +1,6 @@
-package com.example.datainsert.winlator.all;
+package com.ewt45.winlator;
 
 import android.util.Log;
-
-import androidx.lifecycle.Lifecycle;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class Test {
     private static final String TAG = "MyTest";

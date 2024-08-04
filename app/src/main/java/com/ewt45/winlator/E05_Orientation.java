@@ -1,4 +1,4 @@
-package com.example.datainsert.winlator.all;
+package com.ewt45.winlator;
 
 import static android.content.pm.ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE;
 import static android.content.pm.ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT;
@@ -6,12 +6,9 @@ import static android.content.pm.ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
 import android.annotation.SuppressLint;
 import android.content.Context;
 
-import androidx.appcompat.app.AppCompatActivity;
-
 import com.winlator.XServerDisplayActivity;
-import com.winlator.renderer.GLRenderer;
 
-public class E5_Orientation {
+public class E05_Orientation {
     private static final String PREF_KEY_XSA_ORIENT_LAND = "activity_orientation_landsc";
 
     public static boolean onClick(XServerDisplayActivity a) {

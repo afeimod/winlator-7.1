@@ -1,4 +1,4 @@
-package com.example.datainsert.winlator.all;
+package com.ewt45.winlator;
 
 import android.app.Activity;
 import android.content.Context;
@@ -15,7 +15,7 @@ import com.winlator.xserver.XServer;
 /**
  * 绝对位置点击
  */
-public class E6_ClickToMovePointer {
+public class E06_ClickToMovePointer {
     private static final String PREF_KEY_IS_CUR_MOVE_REL = "IS_CUR_MOVE_REL";
 
     public static void addInputControlsItems(XServerDisplayActivity a, ContentDialog dialog) {

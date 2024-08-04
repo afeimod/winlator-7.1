@@ -26,7 +26,6 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.preference.PreferenceManager;
 
-import com.example.datainsert.winlator.all.ExtraFeatures;
 import com.google.android.material.navigation.NavigationView;
 import com.winlator.box86_64.Box86_64EditPresetDialog;
 import com.winlator.box86_64.Box86_64Preset;
@@ -169,7 +168,7 @@ public class SettingsFragment extends Fragment {
             }
         });
 
-        ExtraFeatures.SettingsExtra.addItems((AppCompatActivity) requireActivity(), (FrameLayout) view);
+        com.ewt45.winlator.ExtraFeatures.SettingsExtra.addItems((AppCompatActivity) requireActivity(), (FrameLayout) view);
 
         return view;
     }

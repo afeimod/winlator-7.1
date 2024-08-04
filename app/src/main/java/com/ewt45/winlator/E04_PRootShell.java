@@ -1,9 +1,9 @@
-package com.example.datainsert.winlator.all;
+package com.ewt45.winlator;
 
 import static android.view.View.FOCUS_DOWN;
 import static android.view.View.GONE;
 import static android.view.View.VISIBLE;
-import static com.example.datainsert.winlator.all.QH.dp8;
+import static com.ewt45.winlator.QH.dp8;
 
 import android.content.Context;
 import android.graphics.Color;
@@ -27,7 +27,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatImageButton;
 import androidx.core.widget.NestedScrollView;
 
-import com.example.datainsert.winlator.all.widget.SimpleTextWatcher;
+import com.ewt45.winlator.widget.SimpleTextWatcher;
 import com.winlator.R;
 import com.winlator.XServerDisplayActivity;
 import com.winlator.core.Callback;
@@ -47,7 +47,7 @@ import java.util.concurrent.Executors;
 /**
  * ProcessHelper.exec最长的那个，里面有输出日志到文件的判断标准。两个flag都开启应该就行了。可以参考一下
  */
-public class E4_PRootShell {
+public class E04_PRootShell {
     private static final String TAG = "PRootTerminal";
     public static final int MAX_LINE = 6000; //允许缓存和显示的最大行数
     public static final int REDUCED_FRAGMENT = 3000; //达到最大缓存时，删掉的行数

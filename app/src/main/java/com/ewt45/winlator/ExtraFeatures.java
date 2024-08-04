@@ -1,4 +1,4 @@
-package com.example.datainsert.winlator.all;
+package com.ewt45.winlator;
 
 import android.view.SubMenu;
 import android.widget.FrameLayout;
@@ -15,24 +15,26 @@ import com.winlator.XServerDisplayActivity;
 // 1.wine等输出日志写到侧栏中？
 // 2. logcat日志？
 public class ExtraFeatures {
-    public static class MyApplication extends E0_MyApplication { }
+    public static class MyApplication extends E01_MyApplication { }
 
-    public static class AndroidShortcut extends E1_ShortcutOnAndroidScreen { }
+    public static class AndroidShortcut extends E10_ShortcutOnAndroidScreen { }
 
-    public static class KeyInput extends E2_KeyInput { }
+    public static class KeyInput extends E02_KeyInput { }
 
 
-    public static class Logcat extends E3_Logcat { }
+    public static class Logcat extends E03_Logcat { }
 
-    public static class PRootShell extends E4_PRootShell{ }
+    public static class PRootShell extends E04_PRootShell { }
 
-    public static class Rotate extends E5_Orientation { }
+    public static class Rotate extends E05_Orientation { }
 
-    public static class ClickToMovePointer extends E6_ClickToMovePointer { }
+    public static class ClickToMovePointer extends E06_ClickToMovePointer { }
 
-    public static class PIP extends E7_PIP { }
+    public static class PIP extends E07_PIP { }
 
-    public static class Vibrate extends E9_Vibrate {}
+    public static class Vibrate extends E09_Vibrate { }
+
+    public static class ManageStorage extends E11_ManageStorage { }
 
 
     /**
@@ -78,9 +80,9 @@ public class ExtraFeatures {
 
             //初次启动设置
             //设置旋转方向
-            E5_Orientation.setIsOrieLandFromPref(a, E5_Orientation.getIsOrieLandFromPref(a), false);
+            E05_Orientation.setIsOrieLandFromPref(a, E05_Orientation.getIsOrieLandFromPref(a), false);
             //绝对位置点击
-            E6_ClickToMovePointer.setIsCurMoveRel(a, E6_ClickToMovePointer.getIsCurMoveRelFromPref(a), false);
+            E06_ClickToMovePointer.setIsCurMoveRel(a, E06_ClickToMovePointer.getIsCurMoveRelFromPref(a), false);
         }
     }
 

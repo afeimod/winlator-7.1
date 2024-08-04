@@ -161,7 +161,7 @@ public class GuestProgramLauncherComponent extends EnvironmentComponent {
 
 //        return ProcessHelper.exec(command, envVars.toStringArray(), rootDir, (status) -> {
         //改为根据条件重定向输入输出流
-        return com.example.datainsert.winlator.all.ExtraFeatures.PRootShell.exec(context, command, envVars.toStringArray(), rootDir, (status) -> {
+        return com.ewt45.winlator.ExtraFeatures.PRootShell.exec(context, command, envVars.toStringArray(), rootDir, (status) -> {
             synchronized (lock) {
                 pid = -1;
             }

@@ -242,7 +242,7 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
             setupXEnvironment();
         });
 
-        com.example.datainsert.winlator.all.ExtraFeatures.XMenuExtra.addItemsAndInit(this);
+        com.ewt45.winlator.ExtraFeatures.XMenuExtra.addItemsAndInit(this);
     }
 
     @Override
@@ -559,7 +559,7 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
             else hideInputControls();
         });
 
-        com.example.datainsert.winlator.all.ExtraFeatures.ClickToMovePointer.addInputControlsItems(this, dialog);
+        com.ewt45.winlator.ExtraFeatures.ClickToMovePointer.addInputControlsItems(this, dialog);
         dialog.show();
     }
 

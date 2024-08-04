@@ -1,4 +1,4 @@
-package com.example.datainsert.winlator.all;
+package com.ewt45.winlator;
 
 import static android.os.Environment.DIRECTORY_DOWNLOADS;
 import static android.os.Environment.getExternalStoragePublicDirectory;
@@ -13,7 +13,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
-class E0_MyApplication extends Application {
+class E01_MyApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();

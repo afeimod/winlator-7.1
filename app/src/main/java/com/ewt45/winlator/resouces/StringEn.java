@@ -1,6 +1,6 @@
-package com.example.datainsert.winlator.all.resouces;
+package com.ewt45.winlator.resouces;
 
-import com.example.datainsert.winlator.all.QH;
+import com.ewt45.winlator.QH;
 
 public class StringEn {
     public static void apply() {

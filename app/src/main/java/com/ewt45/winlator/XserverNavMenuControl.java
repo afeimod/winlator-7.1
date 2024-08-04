@@ -1,24 +1,16 @@
-package com.example.datainsert.winlator.all;
-
-import static android.content.pm.ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE;
-import static android.content.pm.ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT;
+package com.ewt45.winlator;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.util.Log;
 import android.view.SubMenu;
-import android.widget.CheckBox;
-import android.widget.LinearLayout;
 
 import androidx.drawerlayout.widget.DrawerLayout;
 
 import com.google.android.material.navigation.NavigationView;
 import com.winlator.R;
 import com.winlator.XServerDisplayActivity;
-import com.winlator.contentdialog.ContentDialog;
 import com.winlator.core.EnvVars;
-import com.winlator.renderer.GLRenderer;
-import com.winlator.widget.TouchpadView;
 
 public class XserverNavMenuControl {
     private static final String TAG = "XserverNavMenuControl";

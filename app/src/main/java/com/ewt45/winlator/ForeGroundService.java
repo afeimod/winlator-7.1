@@ -1,6 +1,5 @@
-package com.example.datainsert.winlator.all;
+package com.ewt45.winlator;
 
-import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Notification;
 import android.app.NotificationChannel;

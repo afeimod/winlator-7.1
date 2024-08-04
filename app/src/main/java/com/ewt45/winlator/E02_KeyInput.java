@@ -1,21 +1,14 @@
-package com.example.datainsert.winlator.all;
+package com.ewt45.winlator;
 
 import static com.winlator.xserver.Keyboard.KEYSYMS_PER_KEYCODE;
-import static com.winlator.xserver.Keyboard.isModifier;
 
-import android.os.Handler;
-import android.os.Looper;
 import android.util.Log;
 import android.view.KeyEvent;
 
-import com.winlator.xserver.Window;
 import com.winlator.xserver.XKeycode;
-import com.winlator.xserver.XLock;
 import com.winlator.xserver.XServer;
-import com.winlator.xserver.events.Event;
-import com.winlator.xserver.events.MappingNotify;
 
-class E2_KeyInput {
+class E02_KeyInput {
     private static final String TAG = "E2_KeyInput";
     /** 用于输入unicode文字时，临时充数的keycode */
     public static final XKeycode[] stubKeyCode = {XKeycode.KEY_A, XKeycode.KEY_B, XKeycode.KEY_C, XKeycode.KEY_D, XKeycode.KEY_E, XKeycode.KEY_F, XKeycode.KEY_G, XKeycode.KEY_H, XKeycode.KEY_I, XKeycode.KEY_J, XKeycode.KEY_K, XKeycode.KEY_L, XKeycode.KEY_M, XKeycode.KEY_N, XKeycode.KEY_O, XKeycode.KEY_P, XKeycode.KEY_Q, XKeycode.KEY_R, XKeycode.KEY_S, XKeycode.KEY_T, XKeycode.KEY_U, XKeycode.KEY_V, XKeycode.KEY_W, XKeycode.KEY_X, XKeycode.KEY_Y, XKeycode.KEY_Z,};

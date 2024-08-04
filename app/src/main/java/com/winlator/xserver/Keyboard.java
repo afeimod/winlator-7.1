@@ -112,7 +112,7 @@ public class Keyboard {
                 xServer.injectKeyRelease(xKeycode);
             }
         }
-        else com.example.datainsert.winlator.all.ExtraFeatures.KeyInput.handleAndroidKeyEvent(xServer, event);
+        else com.ewt45.winlator.ExtraFeatures.KeyInput.handleAndroidKeyEvent(xServer, event);
         return true;
     }
 

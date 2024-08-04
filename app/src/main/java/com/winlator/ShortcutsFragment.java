@@ -22,7 +22,6 @@ import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.datainsert.winlator.all.ExtraFeatures;
 import com.winlator.container.ContainerManager;
 import com.winlator.container.Shortcut;
 import com.winlator.contentdialog.ContentDialog;
@@ -131,7 +130,7 @@ public class ShortcutsFragment extends Fragment {
                 }
                 //添加桌面快捷方式
                 else if(itemId == R.id.shortcut_add_to_screen) {
-                    ExtraFeatures.AndroidShortcut.addToScreen(requireActivity(), shortcut);
+                    com.ewt45.winlator.ExtraFeatures.AndroidShortcut.addToScreen(requireActivity(), shortcut);
                 }
                 return true;
             });

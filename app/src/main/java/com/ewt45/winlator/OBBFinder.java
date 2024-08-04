@@ -1,20 +1,15 @@
-package com.example.datainsert.winlator.all;
+package com.ewt45.winlator;
 
 import android.content.Context;
-import android.content.SharedPreferences;
-import android.net.Uri;
 
 import androidx.preference.PreferenceManager;
 
 import com.winlator.MainActivity;
 import com.winlator.R;
-import com.winlator.core.AppUtils;
 import com.winlator.core.TarCompressorUtils;
 import com.winlator.xenvironment.ImageFs;
 
-import java.io.File;
 import java.io.IOException;
-import java.util.concurrent.Executors;
 
 /**
  * 内置/obb目录下/手动选择/ 处理数据包

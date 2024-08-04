@@ -1,4 +1,4 @@
-package com.example.datainsert.winlator.all;
+package com.ewt45.winlator;
 
 import android.app.Activity;
 import android.content.ComponentName;
@@ -20,7 +20,7 @@ import java.io.File;
 import java.util.List;
 import java.util.Objects;
 
-class E1_ShortcutOnAndroidScreen {
+class E10_ShortcutOnAndroidScreen {
     //包名前缀动态添加吧
     private static final String DESKTOP_FILE_ABSOLUTE_PATH = ".desktop_file_absolute_path";
     private static final String CONTAINER_ID = ".container_id";

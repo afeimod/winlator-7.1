@@ -1,6 +1,5 @@
-package com.example.datainsert.winlator.all.widget;
+package com.ewt45.winlator.widget;
 
-import android.text.Editable;
 import android.text.TextWatcher;
 
 public interface SimpleTextWatcher extends TextWatcher {

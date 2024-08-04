@@ -1,7 +1,7 @@
-package com.example.datainsert.winlator.all;
+package com.ewt45.winlator;
 
 import static android.content.Context.RECEIVER_EXPORTED;
-import static com.example.datainsert.winlator.all.QH.dimen.margin8Dp;
+import static com.ewt45.winlator.QH.dimen.margin8Dp;
 
 import android.annotation.SuppressLint;
 import android.app.DownloadManager;
@@ -21,17 +21,14 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
-import android.widget.Toolbar;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.documentfile.provider.DocumentFile;
 import androidx.fragment.app.Fragment;
 
 import com.winlator.MainActivity;
 import com.winlator.R;
 import com.winlator.core.Callback;
-import com.winlator.core.OnExtractFileListener;
 import com.winlator.core.TarCompressorUtils;
 import com.winlator.xenvironment.ImageFs;
 

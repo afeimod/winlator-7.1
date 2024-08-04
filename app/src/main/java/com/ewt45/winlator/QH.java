@@ -1,11 +1,11 @@
-package com.example.datainsert.winlator.all;
+package com.ewt45.winlator;
 
 import static android.content.pm.ApplicationInfo.FLAG_TEST_ONLY;
 import static android.os.Environment.DIRECTORY_DOWNLOADS;
 import static android.os.Environment.getExternalStoragePublicDirectory;
 
 
-import static com.example.datainsert.winlator.all.QH.dimen.dialogPadding;
+import static com.ewt45.winlator.QH.dimen.dialogPadding;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -34,8 +34,8 @@ import androidx.appcompat.content.res.AppCompatResources;
 import androidx.core.widget.NestedScrollView;
 import androidx.preference.PreferenceManager;
 
-import com.example.datainsert.winlator.all.resouces.StringEn;
-import com.example.datainsert.winlator.all.resouces.StringZh;
+import com.ewt45.winlator.resouces.StringEn;
+import com.ewt45.winlator.resouces.StringZh;
 import com.winlator.R;
 import com.winlator.contentdialog.ContentDialog;
 import com.winlator.core.AppUtils;

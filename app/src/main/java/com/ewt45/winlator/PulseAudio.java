@@ -1,4 +1,4 @@
-package com.example.datainsert.winlator.all;
+package com.ewt45.winlator;
 
 import android.annotation.SuppressLint;
 import android.content.Context;

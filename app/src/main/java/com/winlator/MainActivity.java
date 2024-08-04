@@ -9,11 +9,9 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.text.Html;
 import android.text.method.LinkMovementMethod;
-import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.IntRange;
 import androidx.annotation.NonNull;
@@ -27,18 +25,12 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 
-import com.example.datainsert.winlator.all.ExtraFeatures;
-import com.example.datainsert.winlator.all.QH;
 import com.google.android.material.navigation.NavigationView;
-import com.winlator.container.Container;
-import com.winlator.container.ContainerManager;
-import com.winlator.container.Shortcut;
 import com.winlator.contentdialog.ContentDialog;
 import com.winlator.core.Callback;
 import com.winlator.core.PreloaderDialog;
 import com.winlator.xenvironment.ImageFsInstaller;
 
-import java.io.File;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
@@ -59,7 +51,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         setContentView(R.layout.main_activity);
 
         //初始化QH信息
-        QH.refreshIsTest(this);
+        com.ewt45.winlator.QH.refreshIsTest(this);
 
         drawerLayout = findViewById(R.id.DrawerLayout);
         NavigationView navigationView = findViewById(R.id.NavigationView);
@@ -72,7 +64,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         Intent intent = getIntent();
 
         //添加桌面快捷方式启动的判断
-        ExtraFeatures.AndroidShortcut.handleIfStartFromScreenShortcut(this);
+        com.ewt45.winlator.ExtraFeatures.AndroidShortcut.handleIfStartFromScreenShortcut(this);
 
         editInputControls = intent.getBooleanExtra("edit_input_controls", false);
         if (editInputControls) {

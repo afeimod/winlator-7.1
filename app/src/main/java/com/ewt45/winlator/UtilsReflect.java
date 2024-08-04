@@ -1,14 +1,7 @@
-package com.example.datainsert.winlator.all;
+package com.ewt45.winlator;
 
-import com.winlator.core.Callback;
-import com.winlator.core.ProcessHelper;
-import com.winlator.renderer.GLRenderer;
-import com.winlator.widget.XServerView;
-
-import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 
 public class UtilsReflect {
 
