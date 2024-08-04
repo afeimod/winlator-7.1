@@ -43,8 +43,12 @@ public class ExtraFeatures {
     public static class SettingsExtra {
         public static void addItems(AppCompatActivity a, FrameLayout hostRoot) {
             LinearLayout myLinearRoot = hostRoot.findViewById(R.id.setting_linear_other_root);
+
             Logcat.addItemToSettings(a, myLinearRoot);
+
             PRootShell.addItemToSettings(a, myLinearRoot);
+
+            ManageStorage.addItemToSettings(a, myLinearRoot);
 
 //            if(QH.isTest) {
 //                Button btn = new Button(a);

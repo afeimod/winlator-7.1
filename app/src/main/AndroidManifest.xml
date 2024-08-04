@@ -19,8 +19,8 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS"/>
-    <!--    震动-->
-    <uses-permission android:name="android.permission.VIBRATE" />
+<!--    管理所有文件 可以访问外部存储设备-->
+    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE"/>
 
     <!--    自定义application以全局捕捉异常-->
     <application

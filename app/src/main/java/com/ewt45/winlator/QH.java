@@ -22,6 +22,7 @@ import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Looper;
+import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
@@ -240,15 +241,18 @@ public class QH {
 
         LinearLayout linearRoot = new LinearLayout(a);
         linearRoot.setOrientation(LinearLayout.HORIZONTAL);
+        linearRoot.setVerticalGravity(Gravity.CENTER_VERTICAL);
         linearRoot.addView(view);
 
         ImageView infoImage = new ImageView(a);
+        infoImage.setScaleType(ImageView.ScaleType.FIT_CENTER);
         infoImage.setImageDrawable(AppCompatResources.getDrawable(a, R.drawable.icon_help));
-        int imagePadding = QH.px(a, 5);
-        infoImage.setPadding(0, imagePadding, 0, imagePadding);
+
+//        int imagePadding = QH.px(a, 5);
+//        infoImage.setPadding(0, imagePadding, 0, imagePadding);
         infoImage.setImageTintList(ColorStateList.valueOf(a.getColor(R.color.colorPrimaryDark)));
-        infoImage.setOnClickListener(v -> showConfirmDialog(a, info, null));
-        LinearLayout.LayoutParams imageParams = new LinearLayout.LayoutParams(-2, -1);
+        infoImage.setOnClickListener(v -> showConfirmDialog(v.getContext(), info, null));
+        LinearLayout.LayoutParams imageParams = new LinearLayout.LayoutParams(dp8 * 3, dp8 * 3);
         imageParams.setMarginStart(QH.px(a, 8));
         linearRoot.addView(infoImage, imageParams);
         return linearRoot;
