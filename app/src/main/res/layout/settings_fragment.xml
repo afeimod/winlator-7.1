@@ -233,7 +233,6 @@
                     style="@style/FieldSetLabel"
                     android:text="@string/logs" />
             </FrameLayout>
-            <include layout="@layout/zzz_settings_fragment_extra" />
         </LinearLayout>
     </ScrollView>
 

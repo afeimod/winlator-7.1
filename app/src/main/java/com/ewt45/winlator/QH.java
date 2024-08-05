@@ -10,6 +10,7 @@ import static com.ewt45.winlator.QH.dimen.dialogPadding;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.LocaleManager;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.DialogInterface;
@@ -21,6 +22,7 @@ import android.content.res.TypedArray;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
+import android.os.LocaleList;
 import android.os.Looper;
 import android.view.Gravity;
 import android.view.View;
@@ -100,6 +102,12 @@ public class QH {
     }
 
     private static String refreshLocale(Context c) {
+        //支持安卓13以上，调试时切换应用语言
+        if (isTest &&  Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            LocaleList list = c.getSystemService(LocaleManager.class).getApplicationLocales();
+            if (!list.isEmpty())
+                return list.toLanguageTags();
+        }
         return c.getResources().getConfiguration().getLocales().get(0).getLanguage();
     }
 
@@ -335,6 +343,8 @@ public class QH {
 
 
     public static class string{
+        public static String 获取管理全部文件权限说明;
+        public static String 获取管理全部文件权限;
         public static String 画中画模式;
         public static String proot终端_请先开启选项;
         public static String proot终端_启动失败_请关闭选项重试;

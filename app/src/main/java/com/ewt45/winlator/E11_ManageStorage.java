@@ -8,6 +8,7 @@ import android.os.Environment;
 import android.provider.Settings;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
 
 import androidx.annotation.RequiresApi;
@@ -57,7 +58,8 @@ public class E11_ManageStorage {
 
     public static void addItemToSettings(AppCompatActivity a, LinearLayout hostRoot) {
         Button btn = new Button(a);
-        btn.setText("获取管理全部文件权限");
+        btn.setAllCaps(false);
+        btn.setText(QH.string.获取管理全部文件权限);
         btn.setEnabled(Build.VERSION.SDK_INT >= Build.VERSION_CODES.R);
         btn.setOnClickListener(v -> {
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R)
@@ -69,7 +71,9 @@ public class E11_ManageStorage {
             a.startActivity(intent);
         });
 
-        LinearLayout linear = QH.wrapHelpBtnWithLinear(a, btn, "申请管理所有文件的权限 android.permission.MANAGE_EXTERNAL_STORAGE。\n\n拥有此权限后，可以将外部存储设备 例如otg连接的移动硬盘 添加作为容器的驱动器（可能需要手动填入路径）。");
-        hostRoot.addView(linear, QH.lpLinear(-1, -2).top().to());
+        LinearLayout linear = QH.wrapHelpBtnWithLinear(a, btn, QH.string.获取管理全部文件权限说明);
+        HorizontalScrollView scroll = new HorizontalScrollView(a);
+        scroll.addView(linear);
+        hostRoot.addView(scroll, QH.lpLinear(-1, -2).top().to());
     }
 }

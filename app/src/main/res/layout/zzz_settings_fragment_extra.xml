@@ -13,6 +13,7 @@
             style="@style/FieldSet"
             android:id="@+id/setting_linear_other_root" />
         <TextView
+            android:id="@+id/TVSettingExtra"
             style="@style/FieldSetLabel"
             android:text="额外" />
     </FrameLayout>

@@ -41,25 +41,24 @@ public class StringEn {
         QH.string.proot终端 = "PRoot mini shell";
         QH.string.proot终端说明 = """
                     - If enabled, starting the container -> press the phone's back button -> click option "PRoot shell" to show the shell dialog.
-                    
-                    - When proot is started, this funtion will ask proot to run /usr/bin/dash and connect to the inputs and outputs of this process.
-                    
-                    - At the dialog bottom, you can input commands and press enter to send it.Since it doesn't send characters every time \
+                    \n- When proot is started, this funtion will ask proot to run /usr/bin/dash and connect to the inputs and outputs of this process.
+                    \n- At the dialog bottom, you can input commands and press enter to send it.Since it doesn't send characters every time \
                     the key is pressed, it doesn't work properly when using text editor, sending shortcut commands, etc.
-                    
-                    - Currently Winlator(6.1) by default adds environment variable WINEDEBUG=-all to block all output logs of wine. \
-                    If you want to see it, please override this environment variable manually in the container settings. \
-                    e.g. WINEDEBUG=err+all,fixme+all
-                    
-                    - At the dialog bottom-right, you can turn on the "Auto Scroll To Bottom" option. Note that when this option is turned on, \
+                    \n- At the dialog bottom-right, you can turn on the "Auto Scroll To Bottom" option. Note that when this option is turned on, \
                     users may be interrupted by a new output line while typing commands, please consider turning it off if it happens.
-                    
-                    - This is created at 6.1. Started from 7.1, official version supports "Logs" (can be started from left drawer menu). \
+                    \n- This is created at 6.1. Started from 7.1, official version supports "Logs" (can be started from left drawer menu). \
                     You can go to "Settings" to adjust the output content of wine and box.
                     """;
         QH.string.proot终端_启动失败_请关闭选项重试 = "Launch failed. Please disable the PRoot shell option in settings and retry.";
         QH.string.proot终端_请先开启选项 = "Unable to get output. Please go back to settings and enable the proot shell option first.";
         QH.string.proot终端_自动滚动到底部 = "Auto Scroll To Bottom";
         QH.string.画中画模式 = "PIP Mode";
+        QH.string.获取管理全部文件权限 = "Grant \"Manage All Files\" permission";
+        QH.string.获取管理全部文件权限说明 = """
+            Grant "Manage All Files" permission - android.permission.MANAGE_EXTERNAL_STORAGE
+            \nAfter granted, you can add external storage devices(e.g. connected by USB OTG) as drives in container settings. 
+            \nThis method is from coffincolors(discord) and agnostic-apollo(termux)
+            """;
+
     }
 }
