@@ -81,7 +81,11 @@ public class ExtraFeatures {
 
             ManageStorage.addItemToSettings(a, linearSub);
 
-            Locale.addItemToSettings(a, linearSub);
+            if(QH.isTest) {
+                Locale.addItemToSettings(a, linearSub);
+                E13_Extractor.addItemToSettings(a, linearSub);
+            }
+
         }
     }
 

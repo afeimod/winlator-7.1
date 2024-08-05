@@ -33,6 +33,7 @@ import android.widget.LinearLayout;
 import android.widget.ScrollView;
 
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.content.res.AppCompatResources;
 import androidx.core.widget.NestedScrollView;
 import androidx.preference.PreferenceManager;
@@ -330,11 +331,11 @@ public class QH {
     }
 
     /**将一个视图的context转为activity*/
-    public static Activity getActivity(View v) {
+    public static AppCompatActivity getActivity(View v) {
         Context context = v.getContext();
         while (context instanceof ContextWrapper) {
-            if (context instanceof Activity) {
-                return (Activity) context;
+            if (context instanceof AppCompatActivity) {
+                return (AppCompatActivity) context;
             }
             context = ((ContextWrapper) context).getBaseContext();
         }

@@ -15,9 +15,9 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import java.util.Locale;
 
-public class E12_Locale {
+class E12_Locale {
     public static void addItemToSettings(AppCompatActivity a, LinearLayout hostRoot) {
-        if (!QH.isTest || Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU)
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU)
             return;
         Button btn = new Button(a);
         btn.setText("语言");
@@ -41,7 +41,7 @@ public class E12_Locale {
 
 
     private static void changeLocaleIfNeeded(Context c, @Nullable String target) {
-        if (!QH.isTest || Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU
         || QH.locale.equals(target))
             return;
 

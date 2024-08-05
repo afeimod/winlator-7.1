@@ -20,7 +20,7 @@ import com.winlator.xenvironment.ImageFsInstaller;
 /**
  * 增强型文件权限，可以使用文件路径访问外接设备
  */
-public class E11_ManageStorage {
+class E11_ManageStorage {
     public static final int PERMISSION_MANAGE_EXTERNAL_STORAGE_REQUEST_CODE = 44;
     //当sdk>=R时应该执行这个
     @RequiresApi(api = Build.VERSION_CODES.R)

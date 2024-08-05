@@ -120,7 +120,6 @@ public class E04_PRootShell {
                     .directory(workingDir) //工作目录
                     .redirectErrorStream(true); //合并错误和输出流
             Map<String, String> envMap = builder.environment();
-            //XServerDisplayActivity.setupXEnvironment中，会将WINEDEBUG设置为-all。需要手动在容器设置里添加环境变量 WINEDEBUG=err+all,fixme+all
             for(String oneEnv: envp) {
                 int idxSplit = oneEnv.indexOf('=');
                 envMap.put(oneEnv.substring(0, idxSplit), oneEnv.substring(idxSplit+1));
@@ -130,14 +129,6 @@ public class E04_PRootShell {
             //反射时，类要用实例.getClass()获取，而不能直接传入抽象类Process
             pid = UtilsReflect.getPid(runningProcess);
             Log.d(TAG, "exec: 获取到的pid="+pid);
-
-            //启动dash成功后，再输入命令启动box64。
-            //注意快捷方式启动时，使用winhandler.exe启动exe，其路径中的空格会替换成\+空格，所以还得先用winlator的函数正确分割参数，然后每个参数都加上引号
-            StringBuilder box64CmdFinal = new StringBuilder();
-            for(String str:ProcessHelper.splitCommand(command.substring(box64CmdIdx)))
-                box64CmdFinal.append(str.startsWith("\"") ? "" : "\"").append(str).append(str.endsWith("\"") ? "" : "\"").append(" ");
-            sendInputToProcess(box64CmdFinal + " &\n");
-//            sendInputToProcess(command.substring(box64CmdIdx) + " &\n");
 
             //创建dialog。因为当前并非ui线程，所以要等待一下
             Thread currThread = Thread.currentThread();
@@ -155,6 +146,14 @@ public class E04_PRootShell {
             ProcessHelper.addDebugCallback(displayCallback = new DisplayCallback());
             Method method = UtilsReflect.getMethod(ProcessHelper.class, "createDebugThread", InputStream.class);
             UtilsReflect.invokeMethod(method, null, runningProcess.getInputStream());
+
+            //再输入命令启动box64。
+            //注意快捷方式启动时，使用winhandler.exe启动exe，其路径中的空格会替换成\+空格，所以还得先用winlator的函数正确分割参数，然后每个参数都加上引号
+            StringBuilder box64CmdFinal = new StringBuilder();
+            for(String str:ProcessHelper.splitCommand(command.substring(box64CmdIdx)))
+                box64CmdFinal.append(str.startsWith("\"") ? "" : "\"").append(str).append(str.endsWith("\"") ? "" : "\"").append(" ");
+//            box64CmdFinal = new StringBuilder("xfce4-session");
+            sendInputToProcess(box64CmdFinal + " &\n");
 
             //ProcessHelper.createWaitForThread。在进程结束时调用callback，并清空成员变量的值
             Executors.newSingleThreadExecutor().execute(() -> {
