@@ -1,6 +1,14 @@
 apply plugin: 'com.android.application'
 
 android {
+    signingConfigs {
+        debug {
+            storeFile file('debug.jks')
+            storePassword '123456'
+            keyAlias 'debug'
+            keyPassword '123456'
+        }
+    }
     namespace 'com.winlator'
     compileSdk 34
 
