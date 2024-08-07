@@ -342,6 +342,7 @@ public class E04_PRootShell {
         private Thread delayRefreshThread = new Thread();
         @Override
         public void call(String line) {
+            Log.d(TAG, "进程输出: "+line);
             synchronized (caches) {
                 long currTime = System.currentTimeMillis();
 

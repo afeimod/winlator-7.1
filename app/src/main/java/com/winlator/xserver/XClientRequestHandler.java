@@ -1,5 +1,7 @@
 package com.winlator.xserver;
 
+import android.util.Log;
+
 import com.winlator.xconnector.Client;
 import com.winlator.xconnector.RequestHandler;
 import com.winlator.xconnector.XInputStream;
@@ -146,7 +148,7 @@ public class XClientRequestHandler implements RequestHandler {
         client.setAuthenticated(true);
         return true;
     }
-
+private static int grabbedClient = 0;
     private boolean handleNormalRequest(XClient client, XInputStream inputStream, XOutputStream outputStream) throws IOException {
         if (inputStream.available() < 4) return false;
         byte opcode = inputStream.readByte();
@@ -167,7 +169,20 @@ public class XClientRequestHandler implements RequestHandler {
         client.setRequestLength(requestLength);
 
         try {
+            if(grabbedClient > 0 && client.hashCode() != grabbedClient) {
+                Log.d("grab_server", "其他client尝试执行操作，已忽略");
+                client.skipRequest();
+                return true;
+            }
             switch (opcode) {
+                case 36: //GRAB_SERVER
+                    Log.d("grab_server", "grabServer, 从"+grabbedClient + "到"+client.hashCode());
+                    grabbedClient = client.hashCode();
+                    break;
+                case 37: //UNGRAB_SERVER
+                    Log.d("grab_server", "ungrabServer, 从"+grabbedClient + "到0");
+                    grabbedClient = 0;
+                    break;
                 case ClientOpcodes.CREATE_WINDOW:
                     try (XLock lock = client.xServer.lock(XServer.Lockable.WINDOW_MANAGER, XServer.Lockable.DRAWABLE_MANAGER, XServer.Lockable.INPUT_DEVICE, XServer.Lockable.CURSOR_MANAGER)) {
                         WindowRequests.createWindow(client, inputStream, outputStream);

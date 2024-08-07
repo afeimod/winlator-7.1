@@ -134,6 +134,7 @@ public class GuestProgramLauncherComponent extends EnvironmentComponent {
         boolean bindSHM = envVars.get("WINEESYNC").equals("1");
 
         String command = nativeLibraryDir+"/libproot.so";
+        command += " -0 -L --link2symlink";
         command += " --kill-on-exit";
         command += " --rootfs="+rootDir;
         command += " --cwd="+ImageFs.HOME_PATH;
@@ -156,8 +157,8 @@ public class GuestProgramLauncherComponent extends EnvironmentComponent {
 
         envVars.clear();
         envVars.put("PROOT_TMP_DIR", tmpDir);
-        envVars.put("PROOT_LOADER", nativeLibraryDir+"/libproot-loader.so");
-        if (!wow64Mode) envVars.put("PROOT_LOADER_32", nativeLibraryDir+"/libproot-loader32.so");
+//        envVars.put("PROOT_LOADER", nativeLibraryDir+"/libproot-loader.so");
+//        if (!wow64Mode) envVars.put("PROOT_LOADER_32", nativeLibraryDir+"/libproot-loader32.so");
 
 //        return ProcessHelper.exec(command, envVars.toStringArray(), rootDir, (status) -> {
         //改为根据条件重定向输入输出流
