@@ -131,14 +131,6 @@ public class E04_PRootShell {
             pid = UtilsReflect.getPid(runningProcess);
             Log.d(TAG, "exec: 获取到的pid="+pid);
 
-            //启动dash成功后，再输入命令启动box64。
-            //注意快捷方式启动时，使用winhandler.exe启动exe，其路径中的空格会替换成\+空格，所以还得先用winlator的函数正确分割参数，然后每个参数都加上引号
-            StringBuilder box64CmdFinal = new StringBuilder();
-            for(String str:ProcessHelper.splitCommand(command.substring(box64CmdIdx)))
-                box64CmdFinal.append(str.startsWith("\"") ? "" : "\"").append(str).append(str.endsWith("\"") ? "" : "\"").append(" ");
-            sendInputToProcess(box64CmdFinal + " &\n");
-//            sendInputToProcess(command.substring(box64CmdIdx) + " &\n");
-
             //创建dialog。因为当前并非ui线程，所以要等待一下
             Thread currThread = Thread.currentThread();
             handler.post(() -> {
@@ -155,6 +147,15 @@ public class E04_PRootShell {
             ProcessHelper.addDebugCallback(displayCallback = new DisplayCallback());
             Method method = UtilsReflect.getMethod(ProcessHelper.class, "createDebugThread", InputStream.class);
             UtilsReflect.invokeMethod(method, null, runningProcess.getInputStream());
+
+            //启动dash成功后，再输入命令启动box64。
+            //注意快捷方式启动时，使用winhandler.exe启动exe，其路径中的空格会替换成\+空格，所以还得先用winlator的函数正确分割参数，然后每个参数都加上引号
+            StringBuilder box64CmdFinal = new StringBuilder();
+            for(String str:ProcessHelper.splitCommand(command.substring(box64CmdIdx)))
+                box64CmdFinal.append(str.startsWith("\"") ? "" : "\"").append(str).append(str.endsWith("\"") ? "" : "\"").append(" ");
+//            box64CmdFinal = new StringBuilder("xfce4-session");
+            sendInputToProcess(box64CmdFinal + " &\n");
+//            sendInputToProcess(command.substring(box64CmdIdx) + " &\n");
 
             //ProcessHelper.createWaitForThread。在进程结束时调用callback，并清空成员变量的值
             Executors.newSingleThreadExecutor().execute(() -> {

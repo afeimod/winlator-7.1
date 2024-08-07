@@ -81,7 +81,11 @@ public class ExtraFeatures {
 
             ManageStorage.addItemToSettings(a, linearSub);
 
-            Locale.addItemToSettings(a, linearSub);
+            if(QH.isTest) {
+                Locale.addItemToSettings(a, linearSub);
+                E13_Extractor.addItemToSettings(a, linearSub);
+            }
+
         }
     }
 
@@ -107,6 +111,13 @@ public class ExtraFeatures {
                 ((DrawerLayout) a.findViewById(R.id.DrawerLayout)).closeDrawers();
                 return PIP.enterPIP(a);
             });
+
+            if(QH.isTest) {
+                menu.add("deb安装").setOnMenuItemClickListener(item -> {
+                    ((DrawerLayout) a.findViewById(R.id.DrawerLayout)).closeDrawers();
+                    return E13_Extractor.showDialog(a);
+                });
+            }
 
             //初次启动设置
             //设置旋转方向
