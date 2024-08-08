@@ -2,6 +2,7 @@ package com.winlator.xserver;
 
 import android.util.Log;
 
+import com.ewt45.winlator.TestXserver;
 import com.winlator.xconnector.Client;
 import com.winlator.xconnector.RequestHandler;
 import com.winlator.xconnector.XInputStream;
@@ -169,6 +170,7 @@ private static int grabbedClient = 0;
         client.setRequestLength(requestLength);
 
         try {
+            TestXserver.logOpName(opcode);
             if(grabbedClient > 0 && client.hashCode() != grabbedClient) {
                 Log.d("grab_server", "其他client尝试执行操作，已忽略");
                 client.skipRequest();

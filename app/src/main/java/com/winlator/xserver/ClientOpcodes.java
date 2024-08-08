@@ -1,5 +1,8 @@
 package com.winlator.xserver;
 
+import androidx.annotation.Keep;
+
+@Keep
 public abstract class ClientOpcodes {
     public static final byte CREATE_WINDOW = 1;
     public static final byte CHANGE_WINDOW_ATTRIBUTES = 2;

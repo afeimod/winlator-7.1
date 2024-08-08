@@ -49,7 +49,7 @@ public class ClientSocket {
         if (bytesWritten >= 0) {
             data.position(bytesWritten);
         }
-        else throw new IOException("Failed to write data.");
+        else throw new IOException("Failed to write data."+bytesWritten);
     }
 
     public int recvAncillaryMsg(ByteBuffer data) throws IOException {
