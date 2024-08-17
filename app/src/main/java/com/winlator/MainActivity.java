@@ -62,10 +62,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         actionBar.setDisplayHomeAsUpEnabled(true);
 
         Intent intent = getIntent();
-
-        //添加桌面快捷方式启动的判断
-        com.ewt45.winlator.ExtraFeatures.AndroidShortcut.handleIfStartFromScreenShortcut(this);
-
         editInputControls = intent.getBooleanExtra("edit_input_controls", false);
         if (editInputControls) {
             selectedProfileId = intent.getIntExtra("selected_profile_id", 0);
@@ -82,6 +78,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             navigationView.setCheckedItem(menuItemId);
             if (!requestAppPermissions()) ImageFsInstaller.installIfNeeded(this);
         }
+
+        /*一些额外要做的初始化*/com.ewt45.winlator.ExtraFeatures.onMainActivityCreate(this);
     }
 
     @Override

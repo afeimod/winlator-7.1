@@ -9,7 +9,7 @@ import static com.ewt45.winlator.QH.dimen.dialogPadding;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.app.AlertDialog;
+import android.app.Application;
 import android.app.LocaleManager;
 import android.content.Context;
 import android.content.ContextWrapper;
@@ -22,8 +22,11 @@ import android.content.res.TypedArray;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
+import android.os.Bundle;
 import android.os.LocaleList;
 import android.os.Looper;
+import android.system.ErrnoException;
+import android.system.Os;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -31,8 +34,11 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
+import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.content.res.AppCompatResources;
 import androidx.core.widget.NestedScrollView;
@@ -44,7 +50,12 @@ import com.winlator.R;
 import com.winlator.contentdialog.ContentDialog;
 import com.winlator.core.AppUtils;
 
+import org.apache.commons.compress.utils.IOUtils;
+
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -78,16 +89,6 @@ public class QH {
         refreshTexts(locale);
         dp8 = px(a, 8);
         hasBeenRefreshed = true;
-
-        onActivityCreate(a);
-    }
-
-    /**
-     * 在QH的初始化函数末尾被调用。当activity启动（onCreate）时，进行一些app启动后需要自动执行的操作。
-     * <br/> 注意目前QH初始化是在MainActivity中被调用，如果XServer退出，那么这个函数会被再次调用，而且全部变量会被清空（因为使用runtime.exit()结束了进程）
-     */
-    private static void onActivityCreate(Activity a) {
-        ExtraFeatures.Logcat.onCheckChange(a, ExtraFeatures.Logcat.isChecked(a));
     }
 
     private static int refreshVersionCode(Context c) {
@@ -112,9 +113,36 @@ public class QH {
         return c.getResources().getConfiguration().getLocales().get(0).getLanguage();
     }
 
+    /** 将apk/assets中的文件解压到指定路径 */
+    public static void extractFromAsset(Context c, String assetPath, File dest) {
+        try (InputStream is = c.getAssets().open(assetPath);
+             FileOutputStream fos = new FileOutputStream(dest)) {
+            IOUtils.copy(is, fos);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
     public static int px(Context context, float dpValue) {
         final float scale = context.getResources().getDisplayMetrics().density;
         return (int) (dpValue * scale + 0.5f);
+    }
+
+    /** 同Os.setenv, 但是不用try catch了 */
+    public static void setenv(String name, String value, boolean override) {
+        try {
+            Os.setenv(name, value, override);
+        } catch (ErrnoException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /** 同Os.unsetenv, 但是不用try catch了 */
+    public static void unsetenv(String name) {
+        try {
+            Os.unsetenv(name);
+        } catch (ErrnoException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -256,9 +284,6 @@ public class QH {
         ImageView infoImage = new ImageView(a);
         infoImage.setScaleType(ImageView.ScaleType.FIT_CENTER);
         infoImage.setImageDrawable(AppCompatResources.getDrawable(a, R.drawable.icon_help));
-
-//        int imagePadding = QH.px(a, 5);
-//        infoImage.setPadding(0, imagePadding, 0, imagePadding);
         infoImage.setImageTintList(ColorStateList.valueOf(a.getColor(R.color.colorPrimaryDark)));
         infoImage.setOnClickListener(v -> showConfirmDialog(v.getContext(), info, null));
         LinearLayout.LayoutParams imageParams = new LinearLayout.LayoutParams(dp8 * 3, dp8 * 3);
@@ -276,15 +301,20 @@ public class QH {
     }
 
     /**
-     * 显示一个二次确认的对话框
+     * 显示一个二次确认的对话框。文本可复制
      */
-    public static void showConfirmDialog(Context c, String s, @Nullable DialogInterface.OnClickListener onClickListener) {
-        new AlertDialog.Builder(c)
+    public static void showConfirmDialog(Context c, String s, @Nullable DialogInterface.OnClickListener onPositiveListener) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(c)
                 .setMessage(s)
-                .setPositiveButton(android.R.string.ok, onClickListener)
-                .setNegativeButton(android.R.string.cancel, null)
-                .setCancelable(false)
-                .show();
+                .setPositiveButton(android.R.string.ok, onPositiveListener)
+                .setCancelable(false);
+        if (onPositiveListener != null) //仅在有必要取消时才显示取消按钮
+            builder.setNegativeButton(android.R.string.cancel, null);
+        AlertDialog dialog = builder.show();
+        //文字可复制
+        View tv = dialog.findViewById(android.R.id.message);
+        if (tv instanceof TextView)
+            ((TextView) tv).setTextIsSelectable(true);
     }
 
     private static void refreshTexts(String locale) {
@@ -344,6 +374,9 @@ public class QH {
 
 
     public static class string{
+        public static String 测试;
+        public static String 处理midi音乐;
+        public static String 处理midi音乐说明;
         public static String 获取管理全部文件权限说明;
         public static String 获取管理全部文件权限;
         public static String 画中画模式;
@@ -557,6 +590,23 @@ public class QH {
                 return params;
             }
         }
+    }
+
+    public interface SimpleActivityLifecycleCallbacks extends Application.ActivityLifecycleCallbacks {
+        @Override
+        default public void onActivityCreated(@NonNull Activity activity, @Nullable Bundle savedInstanceState) {}
+        @Override
+        default public void onActivityStarted(@NonNull Activity activity) {}
+        @Override
+        default public void onActivityResumed(@NonNull Activity activity) {}
+        @Override
+        default public void onActivityPaused(@NonNull Activity activity) {}
+        @Override
+        default public void onActivityStopped(@NonNull Activity activity) {}
+        @Override
+        default public void onActivitySaveInstanceState(@NonNull Activity activity, @NonNull Bundle outState) {}
+        @Override
+        default public void onActivityDestroyed(@NonNull Activity activity) {}
     }
 
 }

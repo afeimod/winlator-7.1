@@ -60,5 +60,14 @@ public class StringEn {
             \nThis method is from coffincolors(discord) and agnostic-apollo(termux)
             """;
 
+        QH.string.处理midi音乐 = "Handle MIDI music";
+        QH.string.测试 = "Test";
+        QH.string.处理midi音乐说明 = """
+                Enabling this option to support midi music playback in some 32-bit games. If you worry that it may influence other games, please turn off this option.
+                \nTest Button: Test the midi playback support on current android environment. It does not represent the actual game situation.
+                \nTested games: Road Rash, Rich Man 4. (Audio driver using PulseAudio)
+                \nChanges to wine: When starting the container, if the option is checked, it will extract a special midimap.dll from apk/assets to c:\\windows\\sysywow64, \
+                and add an env WINEDLLOVERRIDES=midimap=n to use this dll. If the option is not checked, the env will be midimap=b.
+                """;
     }
 }

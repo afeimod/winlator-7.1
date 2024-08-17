@@ -242,7 +242,7 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
             setupXEnvironment();
         });
 
-        com.ewt45.winlator.ExtraFeatures.XMenuExtra.addItemsAndInit(this);
+        com.ewt45.winlator.ExtraFeatures.onXServerActivityCreate(this, isGenerateWineprefix());
     }
 
     @Override
@@ -455,6 +455,7 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
         environment.addComponent(guestProgramLauncherComponent);
 
         if (isGenerateWineprefix()) generateWineprefix();
+        /*非UI线程做一些费时操作*/com.ewt45.winlator.ExtraFeatures.beforeXEnvironmentStart(this, isGenerateWineprefix());
         environment.startEnvironmentComponents();
 
         winHandler.start();

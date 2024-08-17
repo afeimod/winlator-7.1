@@ -7,6 +7,7 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O2 -Wno-unused-function -Wimplicit-function
 #add_subdirectory(proot)
 add_subdirectory(virglrenderer)
 add_subdirectory(OpenXR-SDK)
+add_subdirectory(fluidsynth) #fluidsynth，midi支持
 
 add_library(winlator SHARED
             xr/engine.c
