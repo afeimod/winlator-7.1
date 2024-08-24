@@ -9,12 +9,12 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 //#include <sys/stat.h>
-#include <android/log.h>
+//#include <android/log.h>
 #include <pthread.h>
 
 
 
-#define printf(...) __android_log_print(ANDROID_LOG_DEBUG, "MidiServerJNI", __VA_ARGS__);
+//#define printf(...) __android_log_print(ANDROID_LOG_DEBUG, "MidiServerJNI", __VA_ARGS__);
 #define LENGTH_OF_LISTEN_QUEUE  20
 #define BUFFER_SIZE             8
 
@@ -42,25 +42,30 @@ bool doLog = false;
 void* socketStart(void* param);
 
 void fluidSynthStart() {
-    printf("初始化fluidsynth, 开始socket监听");
+    printf("初始化fluidsynth, 开始socket监听\n");
     if (!synth) {
+        printf("3\n");
+
         // Setup synthesizer
         settings = new_fluid_settings();
+        printf("4\n");
+
 //        fluid_settings_setint(settings, "synth.midi-channels", 0xff);
 //        fluid_settings_setstr(settings, "audio.driver", "oboe");
         synth = new_fluid_synth(settings);
+        printf("5\n");
+
         adriver = new_fluid_audio_driver(settings, synth);
+        printf("6\n");
 
         // Load sample soundfont
         fluid_synth_sfload(synth, getenv("MIDI_SF2_PATH"), 1);
-    }
+        printf("7\n");
 
-    //socket用一个新线程吧，因为会一直循环不结束.
-    if (!isSocketRunning) {
-        pthread_t t;
-        pthread_create(&t, nullptr, socketStart, nullptr);
-        isSocketRunning = true;
     }
+    printf("8\n");
+
+    socketStart(nullptr);
 }
 
 void fluidSynthClose() {
@@ -108,22 +113,24 @@ void handleDataFromShortMsg(char* buf) {
 
 
 void* socketStart(void* param) {
-    printf("socketStart开始执行");
+    printf("socketStart开始执行\n");
 
     struct sockaddr_in server_addr;
     server_socket;
+    printf("9\n");
+
     int opt = 1;
     int ret = 0;
     int SERVER_PORT = atoi(getenv("MIDI_SOCKET_PORT"));
-
+    printf("10\n");
     bzero(&server_addr, sizeof(server_addr)); // 置字节字符串前n个字节为0，包含'\0'
     server_addr.sin_family = AF_INET;
     server_addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK); // 转小端,INADDR_LOOPBACK就是指定地址为127.0.0.1的地址
     server_addr.sin_port = htons(SERVER_PORT);
-
+    printf("11\n");
     // 创建一个Socket
     server_socket = socket(PF_INET, SOCK_STREAM, 0);
-
+    printf("12\n");
     if (server_socket < 0) {
         printf("socket创建失败!\n");
         return nullptr;
@@ -266,4 +273,15 @@ Java_com_ewt45_winlator_E14_1MidiServer_fluidSynthAllNoteOff(JNIEnv *env, jclass
     printf("应用切至后台，停止正在播放的音符\n");
     for (int i = 0; i < 16; i ++)
         fluid_synth_all_notes_off(synth, i);
+}
+
+int main(int argc, char *argv[]){
+    printf("1\n");
+    if (!getenv("MIDI_SF2_PATH"))
+        setenv("MIDI_SF2_PATH", "sndfnt.sf2", true);
+    if (!getenv("MIDI_SOCKET_PORT"))
+        setenv("MIDI_SOCKET_PORT", "43456", true);
+    printf("2\n");
+    fluidSynthStart();
+    return 0;
 }

@@ -2,6 +2,7 @@
 # documentation: https://d.android.com/studio/projects/add-native-code.html
 
 cmake_minimum_required(VERSION 3.22.1)
+project(midi_server_sub_project)
 
 set(CWD ${CMAKE_CURRENT_SOURCE_DIR})
 set(DEP_LIBS
@@ -40,7 +41,11 @@ foreach (it_lib IN LISTS DEP_LIBS)
 endforeach (it_lib)
 target_link_libraries(fluidsynth INTERFACE OpenMP::OpenMP_CXX)
 
-# 自己的native代码，依赖于fluidsynth即可。
-add_library(midi_server SHARED midi_server.cpp)
-target_include_directories(midi_server PRIVATE ${CWD}/include)
-target_link_libraries(midi_server PRIVATE fluidsynth log)
+## 自己的native代码，依赖于fluidsynth即可。
+#add_library(midi_server SHARED midi_server.cpp)
+#target_include_directories(midi_server PRIVATE ${CWD}/include)
+#target_link_libraries(midi_server PRIVATE fluidsynth log)
+
+add_executable(midi_server_exe midi_server.cpp)
+target_include_directories(midi_server_exe PRIVATE ${CWD}/include)
+target_link_libraries(midi_server_exe PRIVATE fluidsynth log)
