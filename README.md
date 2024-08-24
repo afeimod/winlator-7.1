@@ -23,4 +23,7 @@
   - 启动容器，返回键显示左侧菜单中可点击。可进入画中画模式。（无法发送输入事件，只能看着，即挂在前台。）
 - 读取u盘/移动硬盘
   - 主界面 - 设置页面，点击按钮获取管理全部文件权限。思路来自：[coffincolors](https://discord.com/channels/829747132562800700/1134958326908731482/1261854866507042876), [agnostic-apollo](https://github.com/termux/termux-app/commit/9eeb2babd7638f8b2967ebd93020e7e37d19cc2b)
+- MIDI支持
+  - 主界面 - 设置界面开启。开启后，启动容器时，会将特殊的 midimap.dll 从 apk/assets 解压到 c:\windows\sysywow64 ，并添加环境变量 WINEDLLOVERRIDES=midimap=n 指定wine使用c盘的dll。未开启选项时环境变量为 midimap=b。使用第三方库 [fluidsynth](https://github.com/FluidSynth/fluidsynth)
+
 
