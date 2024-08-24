@@ -40,7 +40,10 @@ foreach (it_lib IN LISTS DEP_LIBS)
 endforeach (it_lib)
 target_link_libraries(fluidsynth INTERFACE OpenMP::OpenMP_CXX)
 
-# 自己的native代码，依赖于fluidsynth即可。
-add_library(midi_server SHARED midi_server.cpp)
-target_include_directories(midi_server PRIVATE ${CWD}/include)
-target_link_libraries(midi_server PRIVATE fluidsynth log)
+# 只留了64位的fluid库。32位不管了。
+if( ${CMAKE_ANDROID_ARCH_ABI} STREQUAL arm64-v8a)
+    # 自己的native代码，依赖于fluidsynth即可。
+    add_library(midi_server SHARED midi_server.cpp)
+    target_include_directories(midi_server PRIVATE ${CWD}/include)
+    target_link_libraries(midi_server PRIVATE fluidsynth log)
+endif()
