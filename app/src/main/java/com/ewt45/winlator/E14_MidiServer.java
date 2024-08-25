@@ -125,6 +125,7 @@ class E14_MidiServer {
             });
             //添加环境变量指定为native
             envVars.put("WINEDLLOVERRIDES", ovr + "midimap=n");
+            envVars.put(SF_SOCKET_PORT_ENV, SF_SOCKET_PORT); //不知为何在Os设置的不生效。
 
             start(c);
         }
